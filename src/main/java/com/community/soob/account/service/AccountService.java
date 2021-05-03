@@ -6,7 +6,8 @@ import com.community.soob.attachment.Attachment;
 public interface AccountService {
     Account findById(long accountId);
     void deleteAccount(long accountId);
-    void updateProfileImage(Account account, Attachment attachment);
     boolean checkEmailDuplicated(String email);
     boolean checkNicknameDuplicated(String nickname);
+    void updateNickname(long accountId, String nickname);
+    void updateProfileImage(long account, Attachment attachment);
 }

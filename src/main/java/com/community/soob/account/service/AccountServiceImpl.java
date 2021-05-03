@@ -1,6 +1,8 @@
 package com.community.soob.account.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
+import com.community.soob.account.exception.AccountNotFoundException;
 import com.community.soob.attachment.Attachment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,28 +12,43 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service
 public class AccountServiceImpl implements AccountService {
+    private final AccountRepository accountRepository;
+
     @Override
     public Account findById(long accountId) {
-        return null;
+        return accountRepository.findById(accountId)
+                .orElseThrow(AccountNotFoundException::new);
     }
 
+    @Transactional
     @Override
     public void deleteAccount(long accountId) {
-
+        accountRepository.deleteById(accountId);
     }
 
+    @Transactional
     @Override
-    public void updateProfileImage(Account account, Attachment attachment) {
+    public void updateNickname(long accountId, String nickname) {
+        Account account = findById(accountId);
+        account.setNickname(nickname);
+        accountRepository.save(account);
+    }
 
+    @Transactional
+    @Override
+    public void updateProfileImage(long accountId, Attachment attachment) {
+        Account account = findById(accountId);
+        account.setProfileImage(attachment);
+        accountRepository.save(account);
     }
 
     @Override
     public boolean checkEmailDuplicated(String email) {
-        return false;
+        return accountRepository.existsByEmail(email);
     }
 
     @Override
     public boolean checkNicknameDuplicated(String nickname) {
-        return false;
+        return accountRepository.existsByNickname(nickname);
     }
 }

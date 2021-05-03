@@ -3,9 +3,14 @@ package com.community.soob.account.controller;
 import com.community.soob.account.controller.dto.AccountLoginRequestDto;
 import com.community.soob.account.controller.dto.AccountResponseDto;
 import com.community.soob.account.controller.dto.AccountSignupRequestDto;
+import com.community.soob.account.controller.dto.AccountUpdateRequestDto;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.service.AccountService;
 import com.community.soob.account.service.AuthService;
+import com.community.soob.attachment.Attachment;
+import com.community.soob.attachment.AttachmentException;
+import com.community.soob.attachment.AttachmentInfo;
+import com.community.soob.attachment.AttachmentService;
 import com.community.soob.response.ResultResponse;
 import com.community.soob.util.CookieUtil;
 import com.community.soob.util.JwtUtil;
@@ -14,10 +19,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/accounts")
@@ -25,6 +32,7 @@ import javax.validation.Valid;
 public class AccountController {
     private final AuthService authService;
     private final AccountService accountService;
+    private final AttachmentService attachmentService;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
     private final RedisUtil redisUtil;
@@ -72,6 +80,33 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public ResultResponse<AccountResponseDto> retrieveAccount(
             @Parameter(name = "회원번호", required = true) @PathVariable Long accountId) {
+        AccountResponseDto accountResponseDto = AccountResponseDto.fromEntity(accountService.findById(accountId));
+        return ResultResponse.of(ResultResponse.SUCCESS, accountResponseDto);
+    }
+
+    @Operation(summary = "회원 정보 수정", description = "회원정보를 수정한다.")
+    @PutMapping("/{accountId}")
+    public ResultResponse<AccountResponseDto> updateAccount(
+            @Parameter(name = "회원번호", required = true) @PathVariable Long accountId,
+            @Parameter(name = "닉네임DTO")  @Valid @RequestBody final AccountUpdateRequestDto updateRequestDto,
+            @Parameter(name = "프로필이미지") @RequestParam("profileImage") MultipartFile file) {
+        if (file != null && !file.isEmpty()) {
+            AttachmentInfo attachmentInfo = null;
+            try {
+                attachmentInfo = new AttachmentInfo(
+                        file.getOriginalFilename(),
+                        file.getContentType(),
+                        file.getBytes()
+                );
+            } catch (IOException e) {
+                throw new AttachmentException();
+            }
+
+            Attachment attachment = attachmentService.saveProfileImage(attachmentInfo);
+            accountService.updateProfileImage(accountId, attachment);
+        }
+        accountService.updateNickname(accountId, updateRequestDto.getNickname());
+
         AccountResponseDto accountResponseDto = AccountResponseDto.fromEntity(accountService.findById(accountId));
         return ResultResponse.of(ResultResponse.SUCCESS, accountResponseDto);
     }
