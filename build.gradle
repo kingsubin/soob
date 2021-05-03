@@ -31,7 +31,11 @@ dependencies {
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.5.2'
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+    compile group: 'io.swagger', name: 'swagger-annotations', version: '1.6.2'
+    compile group: 'io.swagger', name: 'swagger-models', version: '1.6.2'
+
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.1'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.1'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.1'
