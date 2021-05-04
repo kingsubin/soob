@@ -24,12 +24,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .httpBasic().disable() // rest api 이므로 기본설정 사용안함.
+                .csrf().disable() // rest api 이므로 csrf 보안이 필요없으므로 disable 처리.
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // jwt 이용할거니까 안씀
+            .and()
                 .authorizeRequests()
-                .anyRequest().permitAll();
-
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .anyRequest().permitAll()
+            .and()
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }

@@ -90,4 +90,15 @@ public class AuthServiceImpl implements AuthService {
     public void logout() {
 
     }
+
+    @Transactional
+    @Override
+    public void updatePassword(long accountId, String newPassword) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(AccountNotFoundException::new);
+        String salt = saltService.genSalt();
+        String saltingPassword = saltService.encodePassword(salt, newPassword);
+        account.updatePassword(salt, saltingPassword);
+        accountRepository.save(account);
+    }
 }

@@ -1,5 +1,6 @@
 package com.community.soob.account.config;
 
+import com.community.soob.account.domain.UserAccount;
 import com.community.soob.account.service.CustomUserDetailsService;
 import com.community.soob.util.CookieUtil;
 import com.community.soob.util.JwtUtil;
@@ -9,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -25,6 +25,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
+    // 한 Request 당 한번만 검사
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
@@ -39,17 +40,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String refreshJwt = null;
 
         try{
-            // AccessToken 존재시
+            // AccessToken 존재시 토큰내에서 accountEmail 을 가져옴
             if (accessToken != null){
                 jwt = accessToken.getValue();
                 accountEmail = jwtUtil.getAccountEmail(jwt);
             }
 
+            // 가져온 accountEmail 로 UserDetails 생성
             if (accountEmail != null){
-                UserDetails userDetails = userDetailsService.loadUserByUsername(accountEmail);
+                UserAccount userAccount = (UserAccount) userDetailsService.loadUserByUsername(accountEmail);
 
-                if (jwtUtil.validateToken(jwt, userDetails)){
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());
+                // 토큰이 유효하다면, SecurityContext 에 인증토큰을 넣어줌
+                if (jwtUtil.validateToken(jwt, userAccount)){
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userAccount.getAccount(),null, userAccount.getAuthorities());
                     usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                 }
@@ -67,8 +70,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             String refreshAccountEmail = redisUtil.getData(refreshJwt);
 
             if (refreshAccountEmail.equals(jwtUtil.getAccountEmail(refreshJwt))) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(refreshAccountEmail);
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+                UserAccount userAccount = (UserAccount) userDetailsService.loadUserByUsername(refreshAccountEmail);
+                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userAccount.getAccount(),null,userAccount.getAuthorities());
                 usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 

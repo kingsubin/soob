@@ -11,4 +11,5 @@ public interface AuthService {
     void verifyEmail(String key);
     void sendTempPasswordEmail(String email);
     void logout();
+    void updatePassword(long accountId, String newPassword);
 }

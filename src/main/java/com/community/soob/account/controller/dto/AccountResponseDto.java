@@ -26,13 +26,23 @@ public class AccountResponseDto {
     }
 
     public static AccountResponseDto fromEntity(Account account) {
-        return AccountResponseDto.builder()
-                .email(account.getEmail())
-                .nickname(account.getNickname())
-                .role(account.getRole().name())
-                .hashedFileName(account.getProfileImage().getHashedFileName())
-                .createdAt(account.getCreatedAt())
-                .lastModifiedAt(account.getLastModifiedAt())
-                .build();
+        if (account.getProfileImage() == null) {
+            return AccountResponseDto.builder()
+                    .email(account.getEmail())
+                    .nickname(account.getNickname())
+                    .role(account.getRole().name())
+                    .createdAt(account.getCreatedAt())
+                    .lastModifiedAt(account.getLastModifiedAt())
+                    .build();
+        } else {
+            return AccountResponseDto.builder()
+                    .email(account.getEmail())
+                    .nickname(account.getNickname())
+                    .role(account.getRole().name())
+                    .hashedFileName(account.getProfileImage().getHashedFileName())
+                    .createdAt(account.getCreatedAt())
+                    .lastModifiedAt(account.getLastModifiedAt())
+                    .build();
+        }
     }
 }
