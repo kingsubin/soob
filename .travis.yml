@@ -38,6 +38,17 @@ deploy:
     local_dir: deploy
     wait-until-deployed: true
 
+  - provider: codedeploy
+    access_key_id: $AWS_ACCESS_KEY
+    secret_access_key: $AWS_SECRET_KEY
+    bucket: soob-build
+    key: soob_backend.zip # 빌드파일을 압축해서 전달
+    build_type: zip
+    application: soob_backend # 웹 콘솔에서 등록한 codedeploy 애플리케이션
+    deployment_group: soob_backend # 웹 콘솔에서 등록한 codedeploy 배포그룹
+    region: ap-northeast-2
+    wait-until-deployed: true
+
 # CI 실행 완료시 메일로 알람
 notifications:
   email:
