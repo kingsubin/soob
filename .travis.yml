@@ -2,17 +2,41 @@ language: java
 jdk:
   - openjdk11
 
+# Travis CI 를 어느 브랜치가 푸시될 때 수행할지 지정
+# 현재는 master 브랜치가 push 될 때만 수행함
 branches:
   only:
     - master
 
 # Travis Ci 서버의 Home
+# 그레이들을 통해 의존성을 받게 되면 이를 해당 디렉토리에 캐시하여, 같은 의존성은 다음 배포 때부터 다시 받지 않도록 설정함
 cache:
   directories:
     - '$HOME/.m2/repository'
     - '$HOME/.gradle'
 
+# master 브랜치에 푸시되었을때 수행하는 명령어
+# 프로젝트 내부에 둔 gradlew 를 통해 clean & build 수행
 script: "./gradlew clean build"
+
+# deploy 명령어가 실행되기전에 수행
+# CodeDeploy의 경우 Jar 파일 인식 못하니까 Jar + 설정파일 모아 압축함
+before_deploy:
+  - zip -r soob_backend # soob_backend 이름으로 압축함
+  - mkdir -p deploy # travis ci 가 실행중인 위치에서 deploy란 폴더 생성
+  - mv soob_backend.zip deploy/soob_backend.zip
+
+# S3로 파일 업로드 혹은 CodeDeploy 로 배포 등 외부서비스와 연동될 행위들을 선언함
+deploy:
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY
+    secret_access_key: $AWS_SECRET_KEY
+    bucket: soob-build
+    region: ap-northeast-2
+    skip_cleanup: true
+    acl: private
+    local_dir: deploy
+    wait-until-deployed: true
 
 # CI 실행 완료시 메일로 알람
 notifications:
