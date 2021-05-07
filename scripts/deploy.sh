@@ -1,10 +1,10 @@
 #!/bin/bash
-pwd
-
 set -e
 
 REPOSITORY=/home/ec2-user/app/step2
 PROJECT_NAME=soob_backend
+
+cd $REPOSITORY
 
 echo "> Build 파일 복사"
 
@@ -37,5 +37,5 @@ chmod +x $JAR_NAME
 echo "> $JAR_NAME 실행"
 
 nohup java -jar \
-    -Dspring.profiles.active=production \
+    -Dspring.profiles.active=production \"
     $JAR_NAME > $REPOSITORY/nohup.out 2>&1 &
