@@ -1,4 +1,7 @@
 #!/bin/bash
+pwd
+
+set -e
 
 REPOSITORY=/home/ec2-user/app/step2
 PROJECT_NAME=soob_backend
