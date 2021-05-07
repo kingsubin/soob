@@ -22,9 +22,13 @@ script: "./gradlew clean build"
 # deploy 명령어가 실행되기전에 수행
 # CodeDeploy의 경우 Jar 파일 인식 못하니까 Jar + 설정파일 모아 압축함
 before_deploy:
-  - zip -v -r soob_backend * # soob_backend 이름으로 압축함
-  - mkdir -p deploy # travis ci 가 실행중인 위치에서 deploy란 폴더 생성
-  - mv soob_backend.zip deploy/soob_backend.zip
+  - mkdir -p before-deploy
+  - cp scripts/*.sh before-deploy/
+  - cp appspec.yml before-deploy/
+  - cp build/libs/*.jar before-deploy/
+  - cd before-deploy && zip -r before-deploy *
+  - cd ../ && mkdir -p deploy
+  - mv before-deploy/before-deploy.zip deploy/soob_backend.zip
 
 # S3로 파일 업로드 혹은 CodeDeploy 로 배포 등 외부서비스와 연동될 행위들을 선언함
 deploy:
