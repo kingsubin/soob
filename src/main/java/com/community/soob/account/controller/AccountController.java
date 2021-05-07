@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -94,12 +95,17 @@ public class AccountController {
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 
-    // 로그아웃 미구현
-    // /accounts/logout
     @ApiOperation(value = "회원 로그아웃", notes = "로그아웃한다.")
     @GetMapping("/logout")
-    public ResultResponse<Void> logout() {
-        authService.logout();
+    public ResultResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie accessCookie = cookieUtil.getCookie(request, JwtUtil.ACCESS_TOKEN_NAME);
+        Cookie refreshCookie = cookieUtil.getCookie(request, JwtUtil.REFRESH_TOKEN_NAME);
+        accessCookie.setMaxAge(0);
+        refreshCookie.setMaxAge(0);
+
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
+
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 
@@ -116,8 +122,8 @@ public class AccountController {
     public ResultResponse<AccountResponseDto> updateAccount(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "회원번호", required = true) @PathVariable Long accountId,
-            @ApiParam(value = "닉네임DTO")  @Valid @RequestBody final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
-            @ApiParam(value = "프로필이미지") @RequestParam("profileImage") MultipartFile file) {
+            @ApiParam(value = "닉네임DTO")  @Valid final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
+            @ApiParam(value = "프로필이미지") @RequestPart("file") MultipartFile file) {
         // 프로필이미지 존재시
         if (file != null && !file.isEmpty()) {
             AttachmentInfo attachmentInfo = null;

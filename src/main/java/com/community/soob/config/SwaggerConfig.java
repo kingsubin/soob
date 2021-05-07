@@ -28,7 +28,7 @@ public class SwaggerConfig {
         return new ApiInfoBuilder()
                 .title("Kingsubin Api Documentation")
                 .description("API 명세서")
-                .version("1")
+                .version("1.0")
                 .build();
     }
 }
