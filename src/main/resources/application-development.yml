@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    include: mail
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: springuser
@@ -18,17 +20,6 @@ spring:
     port: 6379
   jwt:
     secret: kingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubin
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: [ ]
-    password: [ ]
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 
 settings:
   email-properties:

@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  profiles:
+    include: mail,production-db
+  cache:
+    type: redis
+  redis:
+    host: localhost
+    port: 6379
+  jwt:
+    secret: kingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubin
+
+settings:
+  email-properties:
+    verificationDuration: 1800
+    verificationLink: http://localhost:8080/account/verify/
+  attachment-properties:
+    path: /Users/kingsubin/Desktop/Proejct/soob/files
+    profileImagePath: /profileImage/
+    postImagePath: /postImage/
