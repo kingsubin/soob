@@ -4,13 +4,13 @@
 
 function find_idle_profile()
 {
-    RESPONSE_CODE=$(sudo curl -s -o /dev/null -w "%{http_code}" http://3.36.81.228/profile)
+    RESPONSE_CODE=$(sudo curl -s -o /dev/null -w "%{http_code}" http://localhost/profile)
 
     if [ ${RESPONSE_CODE} -ge 400 ] # 400 보다 크면 (즉, 40x/50x 에러 모두 포함)
     then
         CURRENT_PROFILE=production2
     else
-        CURRENT_PROFILE=$(sudo curl -s http://3.36.81.228/profile)
+        CURRENT_PROFILE=$(sudo curl -s http://localhost/profile)
     fi
 
     if [ ${CURRENT_PROFILE} == production1 ]
