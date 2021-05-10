@@ -9,16 +9,16 @@ IDLE_PORT=$(find_idle_port)
 
 echo "> Health Check Start!"
 echo "> IDLE_PORT: $IDLE_PORT"
-echo "> curl -s http://3.36.81.228:$IDLE_PORT/health"
+echo "> curl -s http://3.36.81.228:$IDLE_PORT/actuator/health"
 sleep 10
 
 for RETRY_COUNT in {1..10}  # for문 10번 돌기
 do
-  RESPONSE=$(curl -s http://3.36.81.228:${IDLE_PORT}/health)   # 현재 문제 없이 잘 실행되고 있는 요청을 보내봅니다.
+  RESPONSE=$(curl -s http://3.36.81.228:${IDLE_PORT}/actuator/health)   # 현재 문제 없이 잘 실행되고 있는 요청을 보내봅니다.
   UP_COUNT=$(echo ${RESPONSE} | grep 'UP' | wc -l)     # 해당 결과의 줄 수를 숫자로 리턴합니다.
 
   if [ ${UP_COUNT} -ge 1 ]
-  then # $up_count >= 1 ("production" 문자열이 있는지 검증)
+  then # $up_count >= 1 ("UP" 문자열이 있는지 검증)
       echo "> Health check 성공"
       switch_proxy   # switch.sh 실행
       break
