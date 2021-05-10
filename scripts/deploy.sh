@@ -4,11 +4,7 @@ set -e
 REPOSITORY=/home/ec2-user/app/step2
 PROJECT_NAME=soob_backend
 
-pwd
-
 cd $REPOSITORY # 실행위치로 이동
-
-pwd
 
 echo "> Build 파일 복사"
 

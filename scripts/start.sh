@@ -8,7 +8,9 @@ source ${ABSDIR}/profile.sh   # import profile.sh
 REPOSITORY=/home/ec2-user/app/step3
 PROJECT_NAME=soob_backend
 
+pwd # debug
 cd $REPOSITORY # 실행위치로 이동 # 내가따로적음
+pwd # debug
 
 echo "> Build 파일 복사"
 echo "> cp $REPOSITORY/zip/*.jar $REPOSITORY/"
@@ -27,6 +29,7 @@ chmod +x $JAR_NAME
 echo "> $JAR_NAME 실행"
 
 IDLE_PROFILE=$(find_idle_profile)
+echo ${IDLE_PROFILE}
 
 echo "> $JAR_NAME 를 profile=$IDLE_PROFILE 로 실행합니다."
 nohup java -jar \
