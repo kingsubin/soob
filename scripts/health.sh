@@ -16,7 +16,7 @@ for RETRY_COUNT in {1..10}  # for문 10번 돌기
 do
   echo "for문 안으로 들어는 오는가 ? "
   RESPONSE=$(curl --connect-timeout 5 -s http://3.36.81.228:${IDLE_PORT}/actuator/health)   # 현재 문제 없이 잘 실행되고 있는 요청을 보내봅니다.
-  UP_COUNT=$(echo ${RESPONSE} | grep 'UP' | wc -l)     # 해당 결과의 줄 수를 숫자로 리턴합니다.
+  UP_COUNT=$(echo ${RESPONSE} | grep 'UP' | wc -l) # 해당 결과의 줄 수를 숫자로 리턴합니다.
 
   if [ ${UP_COUNT} -ge 1 ]
   then # $up_count >= 1 ("UP" 문자열이 있는지 검증)

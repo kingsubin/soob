@@ -2,8 +2,9 @@ server:
   port: 8082
 
 spring:
-  profiles:
-    include: mail,production-db
+  config:
+    activate:
+      on-profile: "production2"
   cache:
     type: redis
   redis:
