@@ -10,7 +10,7 @@ public class SoobApplication {
 
     public static void main(String[] args) {
         SpringApplication springApplication = new SpringApplication(SoobApplication.class);
-        springApplication.setDefaultProperties(Map.of("spring.profiles.active", "development"));
+//        springApplication.setDefaultProperties(Map.of("spring.profiles.active", "development"));
         springApplication.run(args);
     }
 }
