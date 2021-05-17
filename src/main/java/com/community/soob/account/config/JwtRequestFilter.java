@@ -66,20 +66,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         // AccessToken 의 기간이 만료되어 RefreshToken 을 생성했을때
-        if (refreshJwt != null){
-            String refreshAccountEmail = redisUtil.getData(refreshJwt);
+        try {
+            if (refreshJwt != null){
+                String refreshAccountEmail = redisUtil.getData(refreshJwt);
 
-            if (refreshAccountEmail.equals(jwtUtil.getAccountEmail(refreshJwt))) {
-                UserAccount userAccount = (UserAccount) userDetailsService.loadUserByUsername(refreshAccountEmail);
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userAccount.getAccount(),null,userAccount.getAuthorities());
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                if (refreshAccountEmail.equals(jwtUtil.getAccountEmail(refreshJwt))) {
+                    UserAccount userAccount = (UserAccount) userDetailsService.loadUserByUsername(refreshAccountEmail);
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userAccount.getAccount(),null,userAccount.getAuthorities());
+                    usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 
-                String newToken = jwtUtil.generateToken(refreshAccountEmail);
+                    String newToken = jwtUtil.generateToken(refreshAccountEmail);
 
-                Cookie newAccessToken = cookieUtil.createCookie(JwtUtil.ACCESS_TOKEN_NAME, newToken);
-                httpServletResponse.addCookie(newAccessToken);
+                    Cookie newAccessToken = cookieUtil.createCookie(JwtUtil.ACCESS_TOKEN_NAME, newToken);
+                    httpServletResponse.addCookie(newAccessToken);
+                }
             }
+        } catch (ExpiredJwtException e) {
+            log.error(e.getMessage(), e.getCause());
         }
 
         filterChain.doFilter(httpServletRequest,httpServletResponse);

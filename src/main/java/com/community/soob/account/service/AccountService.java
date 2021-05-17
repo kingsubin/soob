@@ -8,6 +8,6 @@ public interface AccountService {
     void deleteAccount(long accountId);
     boolean checkEmailDuplicated(String email);
     boolean checkNicknameDuplicated(String nickname);
-    void updateNickname(long accountId, String nickname);
-    void updateProfileImage(long account, Attachment attachment);
+    void updateNickname(Account account, String nickname);
+    void updateProfileImage(Account account, Attachment attachment);
 }

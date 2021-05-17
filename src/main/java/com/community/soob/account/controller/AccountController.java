@@ -28,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -88,7 +87,6 @@ public class AccountController {
 
         redisUtil.setDataExpire(refreshJwt, accountEmail, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
 
-        // 응답 객체에 쿠키를 저장
         response.addCookie(accessToken);
         response.addCookie(refreshToken);
 
@@ -97,14 +95,13 @@ public class AccountController {
 
     @ApiOperation(value = "회원 로그아웃", notes = "로그아웃한다.")
     @GetMapping("/logout")
-    public ResultResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        Cookie accessCookie = cookieUtil.getCookie(request, JwtUtil.ACCESS_TOKEN_NAME);
-        Cookie refreshCookie = cookieUtil.getCookie(request, JwtUtil.REFRESH_TOKEN_NAME);
-        accessCookie.setMaxAge(0);
-        refreshCookie.setMaxAge(0);
-
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
+    public ResultResponse<Void> logout(HttpServletResponse response) {
+        Cookie accessToken = cookieUtil.createCookie(JwtUtil.ACCESS_TOKEN_NAME, null);
+        Cookie refreshToken = cookieUtil.createCookie(JwtUtil.REFRESH_TOKEN_NAME, null);
+        accessToken.setMaxAge(0);
+        refreshToken.setMaxAge(0);
+        response.addCookie(accessToken);
+        response.addCookie(refreshToken);
 
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
@@ -138,11 +135,11 @@ public class AccountController {
             }
 
             Attachment attachment = attachmentService.saveProfileImage(attachmentInfo);
-            accountService.updateProfileImage(accountId, attachment);
+            accountService.updateProfileImage(account, attachment);
         }
 
         // 프로필이미지가 없을시
-        accountService.updateNickname(accountId, nicknameUpdateRequestDto.getNickname());
+        accountService.updateNickname(account, nicknameUpdateRequestDto.getNickname());
 
         AccountResponseDto accountResponseDto = AccountResponseDto.fromEntity(accountService.findById(accountId));
         return ResultResponse.of(ResultResponse.SUCCESS, accountResponseDto);
@@ -158,17 +155,16 @@ public class AccountController {
     }
 
     @ApiOperation(value = "회원 비밀번호 변경", notes = "회원 비밀번호를 변경한다.")
-    @PatchMapping("/{accountId}")
+    @PatchMapping("/password-update")
     public ResultResponse<Void> updatePassword(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
-            @ApiParam(value = "회원번호", required = true) @PathVariable Long accountId,
             @ApiParam(value = "비밀번호변경DTO", required = true) @RequestBody @Valid final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
         boolean matches = saltService.matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
         if (!matches) {
             throw new AccountPasswordNotMatchedException();
         }
 
-        authService.updatePassword(accountId, passwordUpdateRequestDto.getNewPassword());
+        authService.updatePassword(account, passwordUpdateRequestDto.getNewPassword());
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 

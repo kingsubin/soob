@@ -28,16 +28,14 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional
     @Override
-    public void updateNickname(long accountId, String nickname) {
-        Account account = findById(accountId);
+    public void updateNickname(Account account, String nickname) {
         account.setNickname(nickname);
         accountRepository.save(account);
     }
 
     @Transactional
     @Override
-    public void updateProfileImage(long accountId, Attachment attachment) {
-        Account account = findById(accountId);
+    public void updateProfileImage(Account account, Attachment attachment) {
         account.setProfileImage(attachment);
         accountRepository.save(account);
     }
