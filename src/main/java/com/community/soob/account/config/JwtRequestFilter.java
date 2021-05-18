@@ -83,6 +83,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 }
             }
         } catch (ExpiredJwtException e) {
+            // refresh 또한 만료되었을 경우
+            // 다시 로그인을 요청
+//            httpServletResponse.sendRedirect("/api/v1/accounts/logout");
             log.error(e.getMessage(), e.getCause());
         }
 
