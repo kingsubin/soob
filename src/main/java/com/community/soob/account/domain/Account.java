@@ -48,16 +48,15 @@ public class Account extends AuditedEntity {
         this.profileImage = profileImage;
     }
 
-    // --- 비즈니스 로직
     public void updateEmailVerified() {
         this.role = Role.LEVEL_1;
     }
 
-    public void setNickname(String nickname) {
+    public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
 
-    public void setProfileImage(Attachment profileImage) {
+    public void updateProfileImage(Attachment profileImage) {
         this.profileImage = profileImage;
     }
 
