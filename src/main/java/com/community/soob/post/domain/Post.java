@@ -35,11 +35,7 @@ public class Post extends AuditedEntity {
     @Column(name = "content")
     private String content;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "attachment_id")
-    private Attachment image;
-
-    @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
 
     @Column(name = "read_count")
@@ -49,13 +45,12 @@ public class Post extends AuditedEntity {
     private int heartCount;
 
     @Builder
-    public Post(Long id, Board board, Account author, String title, String content, Attachment image, List<Attachment> attachments, int readCount, int heartCount) {
+    public Post(Long id, Board board, Account author, String title, String content, List<Attachment> attachments, int readCount, int heartCount) {
         this.id = id;
         this.board = board;
         this.author = author;
         this.title = title;
         this.content = content;
-        this.image = image;
         this.attachments = attachments;
         this.readCount = readCount;
         this.heartCount = heartCount;
