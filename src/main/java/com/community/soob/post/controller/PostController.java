@@ -81,9 +81,9 @@ public class PostController {
             @ApiParam(value = "게시판번호", required = true) @PathVariable Long boardId,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId,
             @ApiParam(value = "게시글수정DTO", required = true) @Valid @RequestBody final PostRequestDto updateRequestDto,
-            @ApiParam(value = "게시글이미지") @RequestParam(name = "files") List<MultipartFile> files) {
+            @ApiParam(value = "이미지") @RequestParam(name = "files") List<MultipartFile> files) {
         // 작성자 일치하는지
-        boolean authorMatched = postService.isAuthorMatched(postId, account);
+        boolean authorMatched = postService.isAuthorMatched(account, postId);
         if (!authorMatched) {
             throw new AuthorNotEqualException();
         }
@@ -126,6 +126,11 @@ public class PostController {
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "게시판번호", required = true) @PathVariable Long boardId,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId) {
+        boolean authorMatched = postService.isAuthorMatched(account, postId);
+        if (!authorMatched) {
+            throw new AuthorNotEqualException();
+        }
+
         postService.deletePost(postId);
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
