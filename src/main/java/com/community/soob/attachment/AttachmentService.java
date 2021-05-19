@@ -73,4 +73,8 @@ public class AttachmentService {
         String postImagePath = settingsProperties.getAttachmentProperties().getPostImagePath();
         return registerAttachment(attachmentInfo, postImagePath);
     }
+
+    public void deleteAttachment(long id) {
+        attachmentRepository.deleteById(id);
+    }
 }

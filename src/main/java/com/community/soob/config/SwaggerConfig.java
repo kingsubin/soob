@@ -18,7 +18,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(swaggerInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.community.soob.account.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.community.soob"))
                 .paths(PathSelectors.any())
                 .build()
                 .useDefaultResponseMessages(false);
