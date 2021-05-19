@@ -6,6 +6,7 @@ import com.community.soob.comment.controller.dto.CommentRequestDto;
 import com.community.soob.comment.controller.dto.CommentResponseDto;
 import com.community.soob.comment.domain.Comment;
 import com.community.soob.comment.service.CommentService;
+import com.community.soob.post.exception.AuthorNotEqualException;
 import com.community.soob.response.ResultResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,6 +53,11 @@ public class CommentController {
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId,
             @ApiParam(value = "댓글번호", required = true) @PathVariable Long commentId,
             @ApiParam(value = "댓글수정DTO", required = true) @RequestBody @Valid final CommentRequestDto requestDto) {
+        boolean authorMatched = commentService.isAuthorMatched(account, commentId);
+        if (!authorMatched) {
+            throw new AuthorNotEqualException();
+        }
+
         commentService.updateComment(commentId, requestDto.getContent());
         CommentResponseDto commentResponseDto = CommentResponseDto.fromEntity(commentService.getComment(commentId));
         return ResultResponse.of(ResultResponse.SUCCESS, commentResponseDto);
@@ -63,6 +69,11 @@ public class CommentController {
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId,
             @ApiParam(value = "댓글번호", required = true) @PathVariable Long commentId) {
+        boolean authorMatched = commentService.isAuthorMatched(account, commentId);
+        if (!authorMatched) {
+            throw new AuthorNotEqualException();
+        }
+
         commentService.deleteComment(commentId);
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
