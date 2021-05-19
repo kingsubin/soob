@@ -2,9 +2,6 @@ spring:
   config:
     activate:
       on-profile: "development"
-  profiles:
-    group:
-      "development": "mail"
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: springuser
@@ -24,7 +21,6 @@ spring:
     port: 6379
   jwt:
     secret: kingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubin
-
 
 settings:
   email-properties:

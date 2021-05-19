@@ -1,6 +1,6 @@
 spring:
   profiles:
     group:
-      "development": "development, mail"
-      "production1": "production1, mail, production-db"
-      "production2": "production2, mail, production-db"
+      "development": "mail"
+      "production1": "mail, production-db"
+      "production2": "mail, production-db"
