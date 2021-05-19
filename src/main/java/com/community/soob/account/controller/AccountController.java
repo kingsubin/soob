@@ -119,7 +119,7 @@ public class AccountController {
     public ResultResponse<AccountResponseDto> updateAccount(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "회원번호", required = true) @PathVariable Long accountId,
-            @ApiParam(value = "닉네임DTO")  @Valid final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
+            @ApiParam(value = "닉네임DTO")  @Valid @RequestBody final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
             @ApiParam(value = "프로필이미지") @RequestPart("file") MultipartFile file) {
         // 프로필이미지 존재시
         if (file != null && !file.isEmpty()) {
@@ -158,7 +158,7 @@ public class AccountController {
     @PatchMapping("/password-update")
     public ResultResponse<Void> updatePassword(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
-            @ApiParam(value = "비밀번호변경DTO", required = true) @RequestBody @Valid final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
+            @ApiParam(value = "비밀번호변경DTO", required = true) @Valid @RequestBody final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
         boolean matches = saltService.matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
         if (!matches) {
             throw new AccountPasswordNotMatchedException();
