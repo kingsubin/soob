@@ -21,9 +21,6 @@ public class Attachment {
     @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    @Column(name = "hashed_file_name", nullable = false)
-    private String hashedFileName;
-
     @Column(name = "file_path", nullable = false)
     private String filePath;
 
@@ -32,9 +29,9 @@ public class Attachment {
     private Post post;
 
     @Builder
-    public Attachment(String fileName, String hashedFileName, String filePath) {
+    public Attachment(Long id, String fileName, String filePath) {
+        this.id = id;
         this.fileName = fileName;
-        this.hashedFileName = hashedFileName;
         this.filePath = filePath;
     }
 
