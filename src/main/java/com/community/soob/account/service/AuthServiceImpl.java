@@ -6,9 +6,9 @@ import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.exception.AccountNotFoundException;
 import com.community.soob.account.exception.AccountPasswordNotMatchedException;
-import com.community.soob.config.properties.SettingsProperties;
 import com.community.soob.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +21,13 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final EmailService emailService;
     private final SaltService saltService;
-    private final SettingsProperties settingsProperties;
     private final RedisUtil redisUtil;
+
+    @Value("{email.verification.duration}")
+    private int verificationDuration;
+
+    @Value("{email.verification.link}")
+    private String verificationLink;
 
     @Transactional
     @Override
@@ -49,11 +54,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void sendSignupVerificationEmail(String email) {
-        String verificationLink = settingsProperties.getEmailProperties().getVerificationLink();
-        long duration = settingsProperties.getEmailProperties().getVerificationDuration();
-
         UUID uuid = UUID.randomUUID();
-        redisUtil.setDataExpire(uuid.toString(), email, duration);
+        redisUtil.setDataExpire(uuid.toString(), email, verificationDuration);
         emailService.sendEmail(email, "회원가입 인증 메일입니다.", verificationLink + uuid.toString());
     }
 
