@@ -10,10 +10,6 @@ import com.community.soob.account.service.SaltService;
 import com.community.soob.account.service.validator.NicknameUpdateValidator;
 import com.community.soob.account.service.validator.PasswordUpdateValidator;
 import com.community.soob.account.service.validator.SignupValidator;
-import com.community.soob.attachment.Attachment;
-import com.community.soob.attachment.AttachmentException;
-import com.community.soob.attachment.AttachmentInfo;
-import com.community.soob.attachment.AttachmentService;
 import com.community.soob.response.ResultResponse;
 import com.community.soob.util.CookieUtil;
 import com.community.soob.util.JwtUtil;
@@ -30,7 +26,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 
 @Api(tags = {"1, Account"})
 @RequiredArgsConstructor
@@ -39,11 +34,10 @@ import java.io.IOException;
 public class AccountController {
     private final AuthService authService;
     private final AccountService accountService;
-    private final AttachmentService attachmentService;
+    private final SaltService saltService;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
     private final RedisUtil redisUtil;
-    private final SaltService saltService;
 
     private final NicknameUpdateValidator nicknameUpdateValidator;
     private final PasswordUpdateValidator passwordUpdateValidator;
@@ -121,28 +115,8 @@ public class AccountController {
             @ApiParam(value = "회원번호", required = true) @PathVariable Long accountId,
             @ApiParam(value = "닉네임DTO")  @Valid @RequestBody final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
             @ApiParam(value = "프로필이미지") @RequestPart("file") MultipartFile file) {
-        // 프로필이미지 존재시
-        if (file != null && !file.isEmpty()) {
-            AttachmentInfo attachmentInfo = null;
-            try {
-                attachmentInfo = new AttachmentInfo(
-                        file.getOriginalFilename(),
-                        file.getContentType(),
-                        file.getBytes()
-                );
-            } catch (IOException e) {
-                throw new AttachmentException();
-            }
-
-            Attachment attachment = attachmentService.saveProfileImage(attachmentInfo);
-            accountService.updateProfileImage(account, attachment);
-        }
-
-        // 프로필이미지가 없을시
-        accountService.updateNickname(account, nicknameUpdateRequestDto.getNickname());
-
-        AccountResponseDto accountResponseDto = AccountResponseDto.fromEntity(accountService.findById(accountId));
-        return ResultResponse.of(ResultResponse.SUCCESS, accountResponseDto);
+        accountService.updateAccount(account, nicknameUpdateRequestDto.getNickname(), file);
+        return ResultResponse.of(ResultResponse.SUCCESS, AccountResponseDto.fromEntity(account));
     }
 
     @ApiOperation(value = "회원 삭제", notes = "회원번호(id) 로 회원정보를 삭제한다.")
