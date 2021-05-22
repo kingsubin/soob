@@ -7,14 +7,12 @@ import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.exception.AccountNotFoundException;
 import com.community.soob.account.exception.AccountPasswordNotMatchedException;
 import com.community.soob.util.RedisUtil;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -22,12 +20,17 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final SaltService saltService;
     private final RedisUtil redisUtil;
-
-    @Value("{email.verification.duration}")
-    private int verificationDuration;
-
-    @Value("{email.verification.link}")
+    private String verificationDuration;
     private String verificationLink;
+
+    public AuthServiceImpl(AccountRepository accountRepository, EmailService emailService, SaltService saltService, RedisUtil redisUtil, @Value("{email.verification.duration}") String verificationDuration,  @Value("{email.verification.link}") String verificationLink) {
+        this.accountRepository = accountRepository;
+        this.emailService = emailService;
+        this.saltService = saltService;
+        this.redisUtil = redisUtil;
+        this.verificationDuration = verificationDuration;
+        this.verificationLink = verificationLink;
+    }
 
     @Transactional
     @Override
@@ -55,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void sendSignupVerificationEmail(String email) {
         UUID uuid = UUID.randomUUID();
-        redisUtil.setDataExpire(uuid.toString(), email, verificationDuration);
+        redisUtil.setDataExpire(uuid.toString(), email, Long.parseLong(verificationDuration));
         emailService.sendEmail(email, "회원가입 인증 메일입니다.", verificationLink + uuid.toString());
     }
 
