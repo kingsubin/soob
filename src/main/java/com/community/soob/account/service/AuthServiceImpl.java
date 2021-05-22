@@ -93,7 +93,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @Override
-    public void updatePassword(Account account, String newPassword) {
+    public void updatePassword(Account account, String currentPassword, String newPassword) {
+        boolean matches = saltService.matches(currentPassword, account.getPassword());
+        if (!matches) {
+            throw new AccountPasswordNotMatchedException();
+        }
+
         String salt = saltService.genSalt();
         String saltingPassword = saltService.encodePassword(salt, newPassword);
         account.updatePassword(salt, saltingPassword);
