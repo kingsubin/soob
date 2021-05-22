@@ -25,18 +25,12 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
-    @Mock
-    AccountRepository accountRepository;
+    @Mock AccountRepository accountRepository;
+    @Mock EmailService emailService;
+    @Mock RedisUtil redisUtil;
 
-    @Mock
-    EmailService emailService;
-
-    // Mock 일때는작동안하는거니까 그냥 새 객체를 만들어줌
+    // SaltService 의 경우 Mock 일때는 작동 안하는거니까 그냥 새 객체를 만들어줌
     SaltService saltService = new SaltService();
-
-    @Mock
-    RedisUtil redisUtil;
-
     AuthServiceImpl authServiceImpl;
 
     @BeforeEach
@@ -45,7 +39,7 @@ class AuthServiceImplTest {
                 accountRepository, emailService, saltService, redisUtil, "1000", "1000");
     }
 
-    @DisplayName("회원가입성공")
+    @DisplayName("회원가입 - 성공")
     @Test
     void testSignupSuccess() {
         AccountSignupRequestDto signupRequestDto = new AccountSignupRequestDto();
@@ -56,17 +50,17 @@ class AuthServiceImplTest {
 
         authServiceImpl.signup(signupRequestDto);
 
-        // 디비에 잘 들어오는가 ?
-        // any() -> 아무거나 들어와도 메소드가 호출되는지만 확인
+        // AccountRepository 에서 save 메소드를 호출하는가 ?
         verify(accountRepository).save(any());
     }
 
-    @DisplayName("회원가입 유효성 검사 실패 - 잘못된 이메일")
+    @DisplayName("회원가입 실패 - 이메일 유효성 검사")
     @Test
     void testSignupFailureByInvalidEmail() {
+
     }
 
-    @DisplayName("패스워드 불일치")
+    @DisplayName("로그인 실패 - 유효하지 않은 패스워드")
     @Test
     void testLoginFailureByInvalidPassword() {
         // test@test.com
@@ -94,7 +88,7 @@ class AuthServiceImplTest {
         });
     }
 
-    @DisplayName("이메일 존재하지않음")
+    @DisplayName("로그인 실패 - 존재하지않는 이메일")
     @Test
     void testLoginFailureByInvalidEmail() {
         // test@test.com
@@ -111,7 +105,7 @@ class AuthServiceImplTest {
         });
     }
 
-    @DisplayName("성공시 토큰이 제대로 발급되고 쿠키에 들어오는지")
+    @DisplayName("로그인 성공 - 이메일, 패스워드 일치")
     @Test
     void testLoginSuccess() {
         // test@test.com
@@ -124,7 +118,7 @@ class AuthServiceImplTest {
                 .id(1L)
                 .email("test@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
-                .nickname("킹수빈")
+                .nickname("test")
                 .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
                 .profileImage(null)
@@ -138,9 +132,9 @@ class AuthServiceImplTest {
         verify(accountRepository).findByEmail("test@test.com");
     }
 
-
+    @DisplayName("회원가입 인증 메일 보내기 성공 - 유효한 이메일")
     @Test
-    void sendSignupVerificationEmail() {
+    void testSendSignupVerificationEmailSuccess() {
         String email = "binch1226@naver.com";
 
         authServiceImpl.sendSignupVerificationEmail(email);
@@ -148,15 +142,52 @@ class AuthServiceImplTest {
         verify(emailService).sendEmail(eq(email), any(), any());
     }
 
+    @DisplayName("회원가입 인증 메일 보내기 실패 - 유효하지 않은 이메일")
     @Test
-    void verifyEmail() {
+    void testSendSignupVerificationEmailFailureByInvalidEmail() {
+
     }
 
+    @DisplayName("이메일 인증 실패 - Redis 에 email Key 존재하지 않음")
     @Test
-    void sendTempPasswordEmail() {
+    void testVerifyEmailFailureByInvalidRedisKey() {
+
     }
 
+    @DisplayName("이메일 인증 실패 - 유효하지 않은 이메일")
     @Test
-    void updatePassword() {
+    void testVerifyEmailFailureByInvalidEmail() {
+
+    }
+
+    @DisplayName("이메일 인증 성공 - 이메일, Redis")
+    @Test
+    void testVerifyEmailSuccess() {
+
+    }
+
+    @DisplayName("임시패스워드 전송 실패 - 이메일 전송")
+    @Test
+    void testSendTempPasswordEmailFailureBySendEmail() {
+    }
+
+    @DisplayName("임시패스워드 전송 실패 - 패스워드 재설정")
+    @Test
+    void testSendTempPasswordEmailFailureByResettingPassword() {
+    }
+
+    @DisplayName("임시패스워드 전송 성공 - 패스워드 재설정 후 이메일 전송")
+    @Test
+    void testSendTempPasswordEmailSuccess() {
+    }
+
+    @DisplayName("패스워드 업데이트 실패 - 패스워드 불일치")
+    @Test
+    void testUpdatePasswordFailureByInvalidPassword() {
+    }
+
+    @DisplayName("패스워드 업데이트 성공 - 패스워드 일치")
+    @Test
+    void testUpdatePasswordSuccess() {
     }
 }
