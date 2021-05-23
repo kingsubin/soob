@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final AttachmentService attachmentService;
+    private final AuthService authService;
 
     @Value("{attachment.url.profile}")
     private String directoryName;
@@ -29,6 +30,8 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @Override
     public void updateAccount(Account account, String nickname, MultipartFile file) {
+        authService.checkRegex(nickname);
+
         if (!file.isEmpty()) {
             attachmentService.deleteProfileImage(account);
             attachmentService.uploadProfileImage(account, file, directoryName);

@@ -5,9 +5,6 @@ import com.community.soob.account.controller.dto.*;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.service.AccountService;
 import com.community.soob.account.service.AuthService;
-import com.community.soob.account.service.validator.NicknameUpdateValidator;
-import com.community.soob.account.service.validator.PasswordUpdateValidator;
-import com.community.soob.account.service.validator.SignupValidator;
 import com.community.soob.response.ResultResponse;
 import com.community.soob.util.CookieUtil;
 import com.community.soob.util.JwtUtil;
@@ -16,7 +13,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
@@ -36,25 +32,6 @@ public class AccountController {
     private final CookieUtil cookieUtil;
     private final RedisUtil redisUtil;
 
-    private final NicknameUpdateValidator nicknameUpdateValidator;
-    private final PasswordUpdateValidator passwordUpdateValidator;
-    private final SignupValidator signupValidator;
-
-    @InitBinder("signupRequestDto")
-    public void signupInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(signupValidator);
-    }
-
-    @InitBinder("nicknameUpdateRequestDto")
-    public void nicknameInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(nicknameUpdateValidator);
-    }
-
-    @InitBinder("passwordUpdateRequestDto")
-    public void passwordInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(passwordUpdateValidator);
-    }
-
     @ApiOperation(value = "회원가입", notes = "회원가입을 한다.")
     @PostMapping
     public ResultResponse<Void> signupAccount(
@@ -67,7 +44,7 @@ public class AccountController {
     @PostMapping("/login")
     public ResultResponse<Void> login(
             @ApiParam(value = "로그인DTO", required = true) @Valid @RequestBody final AccountLoginRequestDto loginRequestDto,
-                                      HttpServletResponse response) {
+            HttpServletResponse response) {
         Account account = authService.login(loginRequestDto);
         String accountEmail = account.getEmail();
 
@@ -130,7 +107,7 @@ public class AccountController {
     public ResultResponse<Void> updatePassword(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "비밀번호변경DTO", required = true) @Valid @RequestBody final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
-        authService.updatePassword(account, passwordUpdateRequestDto.getCurrentPassword(), passwordUpdateRequestDto.getNewPassword());
+        authService.updatePassword(account, passwordUpdateRequestDto);
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 

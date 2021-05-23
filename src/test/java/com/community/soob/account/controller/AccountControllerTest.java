@@ -9,9 +9,6 @@ import com.community.soob.account.service.AccountService;
 import com.community.soob.account.service.AuthService;
 import com.community.soob.account.service.CustomUserDetailsService;
 import com.community.soob.account.service.SaltService;
-import com.community.soob.account.service.validator.NicknameUpdateValidator;
-import com.community.soob.account.service.validator.PasswordUpdateValidator;
-import com.community.soob.account.service.validator.SignupValidator;
 import com.community.soob.attachment.AttachmentService;
 import com.community.soob.util.CookieUtil;
 import com.community.soob.util.JwtUtil;
@@ -22,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -48,25 +43,6 @@ class AccountControllerTest {
     @MockBean RedisUtil redisUtil;
     @MockBean CustomUserDetailsService customUserDetailsService;
     @MockBean JwtRequestFilter jwtRequestFilter;
-
-    @MockBean NicknameUpdateValidator nicknameUpdateValidator;
-    @MockBean PasswordUpdateValidator passwordUpdateValidator;
-    @MockBean SignupValidator signupValidator;
-
-    @InitBinder("signupRequestDto")
-    void signupInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(signupValidator);
-    }
-
-    @InitBinder("nicknameUpdateRequestDto")
-    void nicknameInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(nicknameUpdateValidator);
-    }
-
-    @InitBinder("passwordUpdateRequestDto")
-    void passwordInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(passwordUpdateValidator);
-    }
 
     @DisplayName("닉네임 유효성 검사 성공")
     @Test
