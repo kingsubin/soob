@@ -3,10 +3,8 @@ package com.community.soob.account.controller;
 import com.community.soob.account.config.CurrentAccount;
 import com.community.soob.account.controller.dto.*;
 import com.community.soob.account.domain.Account;
-import com.community.soob.account.exception.AccountPasswordNotMatchedException;
 import com.community.soob.account.service.AccountService;
 import com.community.soob.account.service.AuthService;
-import com.community.soob.account.service.SaltService;
 import com.community.soob.account.service.validator.NicknameUpdateValidator;
 import com.community.soob.account.service.validator.PasswordUpdateValidator;
 import com.community.soob.account.service.validator.SignupValidator;
@@ -34,7 +32,6 @@ import javax.validation.Valid;
 public class AccountController {
     private final AuthService authService;
     private final AccountService accountService;
-    private final SaltService saltService;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
     private final RedisUtil redisUtil;
@@ -133,12 +130,7 @@ public class AccountController {
     public ResultResponse<Void> updatePassword(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "비밀번호변경DTO", required = true) @Valid @RequestBody final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
-        boolean matches = saltService.matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
-        if (!matches) {
-            throw new AccountPasswordNotMatchedException();
-        }
-
-        authService.updatePassword(account, passwordUpdateRequestDto.getNewPassword());
+        authService.updatePassword(account, passwordUpdateRequestDto.getCurrentPassword(), passwordUpdateRequestDto.getNewPassword());
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 

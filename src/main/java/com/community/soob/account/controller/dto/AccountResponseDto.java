@@ -11,16 +11,16 @@ public class AccountResponseDto {
     private String email;
     private String nickname;
     private String role;
-    private String hashedFileName;
+    private String profileImagePath;
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;
 
     @Builder
-    public AccountResponseDto(String email, String nickname, String role, String hashedFileName, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
+    public AccountResponseDto(String email, String nickname, String role, String profileImagePath, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
         this.email = email;
         this.nickname = nickname;
         this.role = role;
-        this.hashedFileName = hashedFileName;
+        this.profileImagePath = profileImagePath;
         this.createdAt = createdAt;
         this.lastModifiedAt = lastModifiedAt;
     }
@@ -39,7 +39,7 @@ public class AccountResponseDto {
                     .email(account.getEmail())
                     .nickname(account.getNickname())
                     .role(account.getRole().name())
-                    .hashedFileName(account.getProfileImage().getHashedFileName())
+                    .profileImagePath(account.getProfileImage().getFilePath())
                     .createdAt(account.getCreatedAt())
                     .lastModifiedAt(account.getLastModifiedAt())
                     .build();
