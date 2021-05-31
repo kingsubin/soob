@@ -45,14 +45,4 @@ public class AccountServiceImpl implements AccountService {
     public void deleteAccount(long accountId) {
         accountRepository.deleteById(accountId);
     }
-
-    @Override
-    public boolean checkEmailDuplicated(String email) {
-        return accountRepository.existsByEmail(email);
-    }
-
-    @Override
-    public boolean checkNicknameDuplicated(String nickname) {
-        return accountRepository.existsByNickname(nickname);
-    }
 }

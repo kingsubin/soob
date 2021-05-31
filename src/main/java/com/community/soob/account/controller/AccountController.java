@@ -115,14 +115,14 @@ public class AccountController {
     @GetMapping("/check-email/{email}")
     public ResultResponse<Boolean> checkEmailDuplicated(
             @ApiParam(value = "EMAIL", required = true) @PathVariable String email) {
-        return ResultResponse.of(ResultResponse.SUCCESS, accountService.checkEmailDuplicated(email));
+        return ResultResponse.of(ResultResponse.SUCCESS, authService.checkEmailDuplicated(email));
     }
 
     @ApiOperation(value = "닉네임 중복체크", notes = "닉네임 중복체크를 한다.")
     @GetMapping("/check-nickname/{nickname}")
     public ResultResponse<Boolean> checkNicknameDuplicated(
             @ApiParam(value = "NICKNAME", required = true) @PathVariable String nickname) {
-        return ResultResponse.of(ResultResponse.SUCCESS, accountService.checkNicknameDuplicated(nickname));
+        return ResultResponse.of(ResultResponse.SUCCESS, authService.checkNicknameDuplicated(nickname));
     }
 
     @ApiOperation(value = "이메일 인증 체크", notes = "발급받은 key 값으로 인증 유효성 체크를 한다.")

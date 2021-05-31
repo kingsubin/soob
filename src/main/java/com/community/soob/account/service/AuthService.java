@@ -12,7 +12,8 @@ public interface AuthService {
     void verifyEmail(String key);
     void sendTempPasswordEmail(String email);
     void updatePassword(Account account, AccountPasswordUpdateRequestDto passwordUpdateRequestDto);
-
+    boolean checkEmailDuplicated(String email);
+    boolean checkNicknameDuplicated(String nickname);
     void checkRegex(String str);
     void checkPasswordMatching(String password, String confirmPassword);
 }

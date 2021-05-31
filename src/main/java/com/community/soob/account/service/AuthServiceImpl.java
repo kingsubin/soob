@@ -121,6 +121,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public boolean checkEmailDuplicated(String email) {
+        return accountRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean checkNicknameDuplicated(String nickname) {
+        return accountRepository.existsByNickname(nickname);
+    }
+
+    @Override
     public void checkRegex(String str) {
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
