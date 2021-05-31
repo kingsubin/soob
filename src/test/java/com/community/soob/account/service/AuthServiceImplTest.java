@@ -30,7 +30,7 @@ class AuthServiceImplTest {
     @Mock AccountRepository accountRepository;
     @Mock EmailService emailService;
 
-    private AccountSignupRequestDto createAccountDto() {
+    private AccountSignupRequestDto createSignupRequestDto() {
         AccountSignupRequestDto signupRequestDto = new AccountSignupRequestDto();
         signupRequestDto.setEmail("test@mail.com");
         signupRequestDto.setNickname("test");
@@ -38,6 +38,18 @@ class AuthServiceImplTest {
         signupRequestDto.setConfirmPassword("password");
 
         return signupRequestDto;
+    }
+
+    private Account createAccount() {
+        return Account.builder()
+                .id(2L)
+                .email("test@test.com")
+                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
+                .nickname("test")
+                .role(Role.NOT_PERMITTED)
+                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
+                .profileImage(null)
+                .build();
     }
 
     @BeforeEach
@@ -53,7 +65,7 @@ class AuthServiceImplTest {
     @DisplayName("회원가입 - 성공")
     @Test
     void testSignupSuccess() {
-        AccountSignupRequestDto signupRequestDto = createAccountDto();
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
 
         authServiceImpl.signup(signupRequestDto);
 
@@ -78,7 +90,7 @@ class AuthServiceImplTest {
     @DisplayName("회원가입 실패 - 이메일 중복")
     @Test
     void testSignupFailureByDuplicatedEmail() {
-        AccountSignupRequestDto signupRequestDto = createAccountDto();
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
         when(accountRepository.existsByEmail("test@mail.com")).thenReturn(true);
 
         assertThrows(DuplicateEmailException.class, () -> authServiceImpl.signup(signupRequestDto));
@@ -89,7 +101,7 @@ class AuthServiceImplTest {
     @DisplayName("회원가입 실패 - 닉네임 중복")
     @Test
     void testSignupFailureByDuplicatedNickname() {
-        AccountSignupRequestDto signupRequestDto = createAccountDto();
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
         when(accountRepository.existsByNickname("test")).thenReturn(true);
 
         assertThrows(DuplicateNicknameException.class, () -> authServiceImpl.signup(signupRequestDto));
@@ -101,80 +113,60 @@ class AuthServiceImplTest {
     @DisplayName("로그인 실패 - 패스워드 불일치")
     @Test
     void testLoginFailureByNotMatchedPassword() {
-        // test@test.com
-        // password
         AccountLoginRequestDto loginRequestDto = new AccountLoginRequestDto();
         loginRequestDto.setEmail("test@test.com");
         loginRequestDto.setPassword("failPassword");
 
-        // 디비에 있어야하는 실제 데이터인데 가짜로 만든거
-        Account account = Account.builder()
-                .id(1L)
-                .email("test@test.com")
-                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
-                .nickname("킹수빈")
-                .role(Role.LEVEL_1)
-                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
-                .profileImage(null)
-                .build();
-
+        Account account = createAccount();
         when(accountRepository.findByEmail("test@test.com"))
                 .thenReturn(Optional.of(account));
 
         assertThrows(AccountPasswordNotMatchedException.class, () -> {
             authServiceImpl.login(loginRequestDto);
         });
+
+        verify(accountRepository).findByEmail(loginRequestDto.getEmail());
+//        verify(saltService).matches(loginRequestDto.getPassword(), account.getPassword());
     }
 
     @DisplayName("로그인 실패 - 존재하지않는 이메일")
     @Test
     void testLoginFailureByInvalidEmail() {
-        // test@test.com
-        // password
         AccountLoginRequestDto loginRequestDto = new AccountLoginRequestDto();
         loginRequestDto.setEmail("failEmail@test.com");
         loginRequestDto.setPassword("password");
 
-        when(accountRepository.findByEmail("failEmail@test.com"))
+        when(accountRepository.findByEmail(loginRequestDto.getEmail()))
                 .thenThrow(new AccountNotFoundException());
 
         assertThrows(AccountNotFoundException.class, () -> {
             authServiceImpl.login(loginRequestDto);
         });
+
+        verify(accountRepository).findByEmail(loginRequestDto.getEmail());
     }
 
     @DisplayName("로그인 성공 - 이메일, 패스워드 일치")
     @Test
     void testLoginSuccess() {
-        // test@test.com
-        // password
         AccountLoginRequestDto loginRequestDto = new AccountLoginRequestDto();
         loginRequestDto.setEmail("test@test.com");
         loginRequestDto.setPassword("password");
 
-        Account account = Account.builder()
-                .id(1L)
-                .email("test@test.com")
-                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
-                .nickname("test")
-                .role(Role.LEVEL_1)
-                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
-                .profileImage(null)
-                .build();
-
-        when(accountRepository.findByEmail("test@test.com"))
+        Account account = createAccount();
+        when(accountRepository.findByEmail(loginRequestDto.getEmail()))
                 .thenReturn(Optional.of(account));
 
         authServiceImpl.login(loginRequestDto);
 
-        verify(accountRepository).findByEmail("test@test.com");
+        verify(accountRepository).findByEmail(loginRequestDto.getEmail());
     }
 
     // ----- 회원가입 인증 메일 보내기 -----
     @DisplayName("회원가입 인증 메일 보내기 성공 - 유효한 이메일")
     @Test
     void testSendSignupVerificationEmailSuccess() {
-        String email = "binch1226@naver.com";
+        String email = "testEmail@gmail.com";
 
         authServiceImpl.sendSignupVerificationEmail(email);
 
