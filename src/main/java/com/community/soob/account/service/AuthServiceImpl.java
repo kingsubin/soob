@@ -5,9 +5,7 @@ import com.community.soob.account.controller.dto.AccountPasswordUpdateRequestDto
 import com.community.soob.account.controller.dto.AccountSignupRequestDto;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
-import com.community.soob.account.exception.AccountNotFoundException;
-import com.community.soob.account.exception.AccountPasswordNotMatchedException;
-import com.community.soob.account.exception.InvalidValueException;
+import com.community.soob.account.exception.*;
 import com.community.soob.util.RedisUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,17 +35,20 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void signup(AccountSignupRequestDto signupRequestDto) {
-        // signup 유효성 검사
-        String nickname = signupRequestDto.getNickname();
-        String password = signupRequestDto.getPassword();
-        String confirmPassword = signupRequestDto.getConfirmPassword();
-        checkRegex(nickname);
-        checkRegex(password);
-        checkPasswordMatching(password, confirmPassword);
+        checkRegex(signupRequestDto.getNickname());
+        checkRegex(signupRequestDto.getPassword());
+        checkPasswordMatching(signupRequestDto.getPassword(), signupRequestDto.getConfirmPassword());
+
+        if (checkEmailDuplicated(signupRequestDto.getEmail())) {
+            throw new DuplicateEmailException();
+        }
+        if (checkNicknameDuplicated(signupRequestDto.getNickname())) {
+            throw new DuplicateNicknameException();
+        }
 
         String salt = saltService.genSalt();
         signupRequestDto.setSalt(salt);
-        signupRequestDto.setPassword(saltService.encodePassword(salt, password));
+        signupRequestDto.setPassword(saltService.encodePassword(salt, signupRequestDto.getPassword()));
 
         accountRepository.save(signupRequestDto.toEntity());
     }
