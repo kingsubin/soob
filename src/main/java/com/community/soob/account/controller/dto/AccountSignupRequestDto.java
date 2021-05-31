@@ -20,11 +20,11 @@ public class AccountSignupRequestDto {
     private String nickname;
 
     @NotBlank(message = "패스워드를 작성해주세요.")
-    @Length(min = 8, message = "8자 이상으로 작성해주세요.")
+    @Length(min = 12, message = "12자 이상으로 작성해주세요.")
     private String password;
 
     @NotBlank(message = "설정한 패스워드와 일치시켜주세요.")
-    @Length(min = 8, message = "패스워드와 일치 시켜주세요.")
+    @Length(min = 12, message = "패스워드와 일치 시켜주세요.")
     private String confirmPassword;
 
     @JsonIgnore
