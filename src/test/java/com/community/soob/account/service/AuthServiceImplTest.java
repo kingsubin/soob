@@ -5,8 +5,7 @@ import com.community.soob.account.controller.dto.AccountSignupRequestDto;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.domain.Role;
-import com.community.soob.account.exception.AccountNotFoundException;
-import com.community.soob.account.exception.AccountPasswordNotMatchedException;
+import com.community.soob.account.exception.*;
 import com.community.soob.util.RedisUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,49 +19,88 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
+    AuthServiceImpl authServiceImpl;
+    SaltService saltService;
+
+    @Mock RedisUtil redisUtil;
     @Mock AccountRepository accountRepository;
     @Mock EmailService emailService;
-    @Mock RedisUtil redisUtil;
 
-    // SaltService 의 경우 Mock 일때는 작동 안하는거니까 그냥 새 객체를 만들어줌
-    SaltService saltService = new SaltService();
-    AuthServiceImpl authServiceImpl;
-
-    @BeforeEach
-    void setUp() {
-        this.authServiceImpl = new AuthServiceImpl(
-                accountRepository, emailService, saltService, redisUtil, "1000", "1000");
-    }
-
-    @DisplayName("회원가입 - 성공")
-    @Test
-    void testSignupSuccess() {
+    private AccountSignupRequestDto createAccountDto() {
         AccountSignupRequestDto signupRequestDto = new AccountSignupRequestDto();
-        signupRequestDto.setEmail("test@naver.com");
+        signupRequestDto.setEmail("test@mail.com");
         signupRequestDto.setNickname("test");
         signupRequestDto.setPassword("password");
         signupRequestDto.setConfirmPassword("password");
 
+        return signupRequestDto;
+    }
+
+    @BeforeEach
+    void setUp() {
+        String verificationDuration = "1800";
+        String verificationLink = "http://localhost:8080/account/verify/";
+        saltService = new SaltService();
+        this.authServiceImpl = new AuthServiceImpl(
+                accountRepository, emailService, saltService, redisUtil, verificationDuration, verificationLink);
+    }
+
+    // ----- 회원가입 -----
+    @DisplayName("회원가입 - 성공")
+    @Test
+    void testSignupSuccess() {
+        AccountSignupRequestDto signupRequestDto = createAccountDto();
+
         authServiceImpl.signup(signupRequestDto);
 
-        // AccountRepository 에서 save 메소드를 호출하는가 ?
         verify(accountRepository).save(any());
     }
 
-    @DisplayName("회원가입 실패 - 이메일 유효성 검사")
+    @DisplayName("회원가입 실패 - 닉네임 정규식")
     @Test
-    void testSignupFailureByInvalidEmail() {
-
+    void testSignupFailureByInvalidNickname() {
     }
 
-    @DisplayName("로그인 실패 - 유효하지 않은 패스워드")
+    @DisplayName("회원가입 실패 - 패스워드 정규식")
     @Test
-    void testLoginFailureByInvalidPassword() {
+    void testSignupFailureByInvalidPassword() {
+    }
+
+    @DisplayName("회원가입 실패 - 패스워드, 확인패스워드 불일치")
+    @Test
+    void testSignupFailureByNotEqualPassword() {
+    }
+
+    @DisplayName("회원가입 실패 - 이메일 중복")
+    @Test
+    void testSignupFailureByDuplicatedEmail() {
+        AccountSignupRequestDto signupRequestDto = createAccountDto();
+        when(accountRepository.existsByEmail("test@mail.com")).thenReturn(true);
+
+        assertThrows(DuplicateEmailException.class, () -> authServiceImpl.signup(signupRequestDto));
+
+        verify(accountRepository, atLeastOnce()).existsByEmail("test@mail.com");
+    }
+
+    @DisplayName("회원가입 실패 - 닉네임 중복")
+    @Test
+    void testSignupFailureByDuplicatedNickname() {
+        AccountSignupRequestDto signupRequestDto = createAccountDto();
+        when(accountRepository.existsByNickname("test")).thenReturn(true);
+
+        assertThrows(DuplicateNicknameException.class, () -> authServiceImpl.signup(signupRequestDto));
+
+        verify(accountRepository, atLeastOnce()).existsByNickname("test");
+    }
+
+    // ----- 로그인 -----
+    @DisplayName("로그인 실패 - 패스워드 불일치")
+    @Test
+    void testLoginFailureByNotMatchedPassword() {
         // test@test.com
         // password
         AccountLoginRequestDto loginRequestDto = new AccountLoginRequestDto();
@@ -132,6 +170,7 @@ class AuthServiceImplTest {
         verify(accountRepository).findByEmail("test@test.com");
     }
 
+    // ----- 회원가입 인증 메일 보내기 -----
     @DisplayName("회원가입 인증 메일 보내기 성공 - 유효한 이메일")
     @Test
     void testSendSignupVerificationEmailSuccess() {
@@ -145,9 +184,9 @@ class AuthServiceImplTest {
     @DisplayName("회원가입 인증 메일 보내기 실패 - 유효하지 않은 이메일")
     @Test
     void testSendSignupVerificationEmailFailureByInvalidEmail() {
-
     }
 
+    // ----- 이메일 인증 -----
     @DisplayName("이메일 인증 실패 - Redis 에 email Key 존재하지 않음")
     @Test
     void testVerifyEmailFailureByInvalidRedisKey() {
@@ -166,14 +205,10 @@ class AuthServiceImplTest {
 
     }
 
-    @DisplayName("임시패스워드 전송 실패 - 이메일 전송")
+    // ----- 임시 패스워드 전송 -----
+    @DisplayName("임시패스워드 전송 실패 - 존재하지 않는 이메일")
     @Test
-    void testSendTempPasswordEmailFailureBySendEmail() {
-    }
-
-    @DisplayName("임시패스워드 전송 실패 - 패스워드 재설정")
-    @Test
-    void testSendTempPasswordEmailFailureByResettingPassword() {
+    void testSendTempPasswordEmailFailureByInvalidEmail() {
     }
 
     @DisplayName("임시패스워드 전송 성공 - 패스워드 재설정 후 이메일 전송")
@@ -181,9 +216,20 @@ class AuthServiceImplTest {
     void testSendTempPasswordEmailSuccess() {
     }
 
+    // ----- 패스워드 업데이트 -----
     @DisplayName("패스워드 업데이트 실패 - 패스워드 불일치")
     @Test
+    void testUpdatePasswordFailureByNotMatchedPassword() {
+    }
+
+    @DisplayName("패스워드 업데이트 실패 - 패스워드 정규식")
+    @Test
     void testUpdatePasswordFailureByInvalidPassword() {
+    }
+
+    @DisplayName("패스워드 업데이트 실패 - 패스워드, 확인패스워드 불일치")
+    @Test
+    void testUpdatePasswordFailureByNotEqualPassword() {
     }
 
     @DisplayName("패스워드 업데이트 성공 - 패스워드 일치")
