@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Transactional(readOnly = true)
 @Service
@@ -35,8 +36,9 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void signup(AccountSignupRequestDto signupRequestDto) {
-        checkRegex(signupRequestDto.getNickname());
-        checkRegex(signupRequestDto.getPassword());
+        checkEmailRegex(signupRequestDto.getEmail());
+        checkNicknameRegex(signupRequestDto.getNickname());
+        checkPasswordRegex(signupRequestDto.getPassword());
         checkPasswordMatching(signupRequestDto.getPassword(), signupRequestDto.getConfirmPassword());
 
         if (checkEmailDuplicated(signupRequestDto.getEmail())) {
@@ -66,6 +68,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void sendSignupVerificationEmail(String email) {
+        checkEmailRegex(email);
         UUID uuid = UUID.randomUUID();
         redisUtil.setDataExpire(uuid.toString(), email, Long.parseLong(verificationDuration));
         emailService.sendEmail(email, "회원가입 인증 메일입니다.", verificationLink + uuid.toString());
@@ -85,6 +88,8 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void sendTempPasswordEmail(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(AccountNotFoundException::new);
         String uuid = UUID.randomUUID().toString();
         String tempPassword = uuid.substring(0, 15);
 
@@ -94,8 +99,6 @@ public class AuthServiceImpl implements AuthService {
         String salt = saltService.genSalt();
         String saltingPassword = saltService.encodePassword(salt, tempPassword);
 
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(AccountNotFoundException::new);
         account.updatePassword(salt, saltingPassword);
         accountRepository.save(account);
     }
@@ -112,7 +115,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AccountPasswordNotMatchedException();
         }
 
-        checkRegex(newPassword);
+        checkPasswordRegex(newPassword);
         checkPasswordMatching(newPassword, confirmNewPassword);
 
         String salt = saltService.genSalt();
@@ -132,19 +135,38 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void checkRegex(String str) {
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
+    public void checkEmailRegex(String email) {
+        // 이메일 형식 체크
+        String regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        if (!Pattern.matches(regex, email)) {
+            throw new InvalidEmailException();
+        }
+    }
+
+    @Override
+    public void checkNicknameRegex(String nickname) {
+        // 문자, 숫자만 가능
+        for (int i = 0; i < nickname.length(); i++) {
+            char c = nickname.charAt(i);
             if (!Character.isLetterOrDigit(c)) {
-                throw new InvalidValueException();
+                throw new InvalidNicknameException();
             }
+        }
+    }
+
+    @Override
+    public void checkPasswordRegex(String password) {
+        // 문자, 숫자, 특수문자 12자 이상
+        String regex = "^[a-zA-Z0-9~!@#$%^&*()_+=.-]{12,}$";
+        if (!Pattern.matches(regex, password)) {
+            throw new InvalidPasswordException();
         }
     }
 
     @Override
     public void checkPasswordMatching(String password, String confirmPassword) {
         if (!password.equals(confirmPassword)) {
-            throw new InvalidValueException();
+            throw new AccountPasswordNotMatchedException();
         }
     }
 }

@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     @Override
     public void updateAccount(Account account, String nickname, MultipartFile file) {
-        authService.checkRegex(nickname);
+        authService.checkNicknameRegex(nickname);
 
         if (!file.isEmpty()) {
             attachmentService.deleteProfileImage(account);
