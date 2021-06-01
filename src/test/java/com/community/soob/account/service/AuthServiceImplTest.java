@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -33,6 +34,8 @@ class AuthServiceImplTest {
     @Mock RedisUtil redisUtil;
     @Mock AccountRepository accountRepository;
     @Mock EmailService emailService;
+
+    private UUID defaultUUID = UUID.fromString("d49de159-7c60-41bb-9f4c-51ba1087f696");
 
     private AccountSignupRequestDto createSignupRequestDto() {
         AccountSignupRequestDto signupRequestDto = new AccountSignupRequestDto();
@@ -278,7 +281,6 @@ class AuthServiceImplTest {
         verify(accountRepository).findByEmail(email);
     }
 
-    // X
     @DisplayName("임시패스워드 전송 성공 - 패스워드 재설정 후 이메일 전송")
     @Test
     void testSendTempPasswordEmailSuccess() {
@@ -287,17 +289,20 @@ class AuthServiceImplTest {
         when(accountRepository.findByEmail(email))
                 .thenReturn(Optional.of(account));
 
-        String tempPassword = UUID.randomUUID().toString();
+        MockedStatic<UUID> mockedUUID = mockStatic(UUID.class);
+        mockedUUID.when(UUID::randomUUID).thenReturn(defaultUUID);
+
         String salt = "";
         String saltingPassword = "";
-        when(saltService.genSalt()).thenReturn(salt = "$2a$10$MIGfGk4v0EyGdlLOZL.H8O");
-        when(saltService.encodePassword(salt, tempPassword)).thenReturn(saltingPassword = "$2a$10$MIGfGk4v0EyGdlLOZL.H8OLQDM4OeWLC4ql2RHRY/hpLbis7l60Dq");
+        doReturn(salt = "$2a$10$MIGfGk4v0EyGdlLOZL.H8O").when(saltService).genSalt();
+        doReturn(saltingPassword = "$2a$10$MIGfGk4v0EyGdlLOZL.H8OLQDM4OeWLC4ql2RHRY/hpLbis7l60Dq").when(saltService).encodePassword(salt, defaultUUID.toString());
 
         authServiceImpl.sendTempPasswordEmail(email);
 
         assertEquals(account.getSalt(), salt);
         assertEquals(account.getPassword(), saltingPassword);
         verify(accountRepository).findByEmail(email);
+        verify(emailService).sendEmail(eq(email), any(), any());
         verify(accountRepository).save(account);
     }
 
