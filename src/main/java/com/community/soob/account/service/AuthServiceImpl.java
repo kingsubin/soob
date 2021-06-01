@@ -90,8 +90,7 @@ public class AuthServiceImpl implements AuthService {
     public void sendTempPasswordEmail(String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(AccountNotFoundException::new);
-        String uuid = UUID.randomUUID().toString();
-        String tempPassword = uuid.substring(0, 15);
+        String tempPassword = UUID.randomUUID().toString();
 
         emailService.sendEmail(email, "임시비밀번호 전송 메일입니다.", "로그인 후 패스워드를 변경해주세요. 임시 비밀번호 : " + tempPassword);
 

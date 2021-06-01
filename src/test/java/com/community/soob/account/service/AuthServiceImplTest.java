@@ -12,11 +12,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -24,7 +26,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
     AuthServiceImpl authServiceImpl;
-    SaltService saltService;
+
+    @Spy
+    SaltService saltService = new SaltService();
 
     @Mock RedisUtil redisUtil;
     @Mock AccountRepository accountRepository;
@@ -34,8 +38,8 @@ class AuthServiceImplTest {
         AccountSignupRequestDto signupRequestDto = new AccountSignupRequestDto();
         signupRequestDto.setEmail("test@mail.com");
         signupRequestDto.setNickname("test");
-        signupRequestDto.setPassword("password");
-        signupRequestDto.setConfirmPassword("password");
+        signupRequestDto.setPassword("password1234!@#$");
+        signupRequestDto.setConfirmPassword("password1234!@#$");
 
         return signupRequestDto;
     }
@@ -56,7 +60,6 @@ class AuthServiceImplTest {
     void setUp() {
         String verificationDuration = "1800";
         String verificationLink = "http://localhost:8080/account/verify/";
-        saltService = new SaltService();
         this.authServiceImpl = new AuthServiceImpl(
                 accountRepository, emailService, saltService, redisUtil, verificationDuration, verificationLink);
     }
@@ -72,19 +75,53 @@ class AuthServiceImplTest {
         verify(accountRepository).save(any());
     }
 
+    @DisplayName("회원가입 실패 - 이메일 정규식")
+    @Test
+    void testSignupFailureByInvalidEmail() {
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
+        signupRequestDto.setEmail("InvalidEmail!@#");
+        AuthServiceImpl authService = spy(authServiceImpl);
+
+        assertThrows(InvalidEmailException.class, () -> authService.signup(signupRequestDto));
+
+        verify(authService).checkEmailRegex(signupRequestDto.getEmail());
+    }
+
     @DisplayName("회원가입 실패 - 닉네임 정규식")
     @Test
     void testSignupFailureByInvalidNickname() {
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
+        signupRequestDto.setNickname("InvalidNickname!@#");
+        AuthServiceImpl authService = spy(authServiceImpl);
+
+        assertThrows(InvalidNicknameException.class, () -> authService.signup(signupRequestDto));
+
+        verify(authService).checkNicknameRegex(signupRequestDto.getNickname());
     }
 
     @DisplayName("회원가입 실패 - 패스워드 정규식")
     @Test
     void testSignupFailureByInvalidPassword() {
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
+        signupRequestDto.setPassword("InvalidPass");
+        signupRequestDto.setConfirmPassword("InvalidPass");
+        AuthServiceImpl authService = spy(authServiceImpl);
+
+        assertThrows(InvalidPasswordException.class, () -> authService.signup(signupRequestDto));
+
+        verify(authService).checkPasswordRegex(signupRequestDto.getPassword());
     }
 
     @DisplayName("회원가입 실패 - 패스워드, 확인패스워드 불일치")
     @Test
     void testSignupFailureByNotEqualPassword() {
+        AccountSignupRequestDto signupRequestDto = createSignupRequestDto();
+        signupRequestDto.setConfirmPassword("NotEqualPassword");
+        AuthServiceImpl authService = spy(authServiceImpl);
+
+        assertThrows(AccountPasswordNotMatchedException.class, () -> authService.signup(signupRequestDto));
+
+        verify(authService).checkPasswordMatching(signupRequestDto.getPassword(), signupRequestDto.getConfirmPassword());
     }
 
     @DisplayName("회원가입 실패 - 이메일 중복")
@@ -126,7 +163,7 @@ class AuthServiceImplTest {
         });
 
         verify(accountRepository).findByEmail(loginRequestDto.getEmail());
-//        verify(saltService).matches(loginRequestDto.getPassword(), account.getPassword());
+        verify(saltService).matches(loginRequestDto.getPassword(), account.getPassword());
     }
 
     @DisplayName("로그인 실패 - 존재하지않는 이메일")
@@ -160,6 +197,7 @@ class AuthServiceImplTest {
         authServiceImpl.login(loginRequestDto);
 
         verify(accountRepository).findByEmail(loginRequestDto.getEmail());
+        verify(saltService).matches(loginRequestDto.getPassword(), account.getPassword());
     }
 
     // ----- 회원가입 인증 메일 보내기 -----
@@ -176,36 +214,91 @@ class AuthServiceImplTest {
     @DisplayName("회원가입 인증 메일 보내기 실패 - 유효하지 않은 이메일")
     @Test
     void testSendSignupVerificationEmailFailureByInvalidEmail() {
+        String email = "InvalidEmail";
+        AuthServiceImpl authService = spy(authServiceImpl);
+
+        assertThrows(InvalidEmailException.class, () -> {
+            authService.sendSignupVerificationEmail(email);
+        });
+
+        verify(authService).checkEmailRegex(email);
     }
 
     // ----- 이메일 인증 -----
     @DisplayName("이메일 인증 실패 - Redis 에 email Key 존재하지 않음")
     @Test
     void testVerifyEmailFailureByInvalidRedisKey() {
+        String key = "InvalidKey";
 
+        assertNull(redisUtil.getData(key));
+
+        verify(redisUtil).getData(key);
     }
 
-    @DisplayName("이메일 인증 실패 - 유효하지 않은 이메일")
+    @DisplayName("이메일 인증 실패 - 존재하지 않는 이메일")
     @Test
     void testVerifyEmailFailureByInvalidEmail() {
+        String key = "eyJhbGciOiJIUzI1NiJ9.eyJhY2NvdW50RW1haWwiOiJxdWVlbnN1YmluQG5hdmVyLmNvbSIsImlhdCI6MTYyMDcxMDc2OCwiZXhwIjoxNjIwNzIwODQ4fQ.V0RTILEB72nCraqRO_OhTIXzzlQ9CxHlkyheyfaVDVU";
+        String email = "";
+        when(redisUtil.getData(key)).thenReturn(email = "queensubin@naver.com");
 
+        assertThrows(AccountNotFoundException.class, () -> authServiceImpl.verifyEmail(key));
+
+        verify(redisUtil).getData(key);
+        verify(accountRepository).findByEmail(email);
     }
 
     @DisplayName("이메일 인증 성공 - 이메일, Redis")
     @Test
     void testVerifyEmailSuccess() {
+        String key = "eyJhbGciOiJIUzI1NiJ9.eyJhY2NvdW50RW1haWwiOiJraW5nc3ViaW5AbmF2ZXIuY29tIiwiaWF0IjoxNjIwMTI3NjA1LCJleHAiOjE2MjAxMzA0ODV9.zOiWpqoVX3R_EjeV1DL1lQwlZFnSec4RrFRQuK-IZV4";
+        when(redisUtil.getData(key)).thenReturn("kingsubin@naver.com");
 
+        Account account = createAccount();
+        when(accountRepository.findByEmail("kingsubin@naver.com"))
+                .thenReturn(Optional.of(account));
+
+        authServiceImpl.verifyEmail(key);
+
+        assertEquals(account.getRole(), Role.LEVEL_1);
+
+        verify(redisUtil).deleteData(key);
     }
 
     // ----- 임시 패스워드 전송 -----
     @DisplayName("임시패스워드 전송 실패 - 존재하지 않는 이메일")
     @Test
     void testSendTempPasswordEmailFailureByInvalidEmail() {
+        String email = "InvalidEmail";
+
+        assertThrows(AccountNotFoundException.class, () -> {
+            authServiceImpl.sendTempPasswordEmail(email);
+        });
+
+        verify(accountRepository).findByEmail(email);
     }
 
+    // X
     @DisplayName("임시패스워드 전송 성공 - 패스워드 재설정 후 이메일 전송")
     @Test
     void testSendTempPasswordEmailSuccess() {
+        String email = "kingsubin@naver.com";
+        Account account = createAccount();
+        when(accountRepository.findByEmail(email))
+                .thenReturn(Optional.of(account));
+
+        String tempPassword = UUID.randomUUID().toString();
+        String salt = "";
+        String saltingPassword = "";
+        when(saltService.genSalt()).thenReturn(salt = "$2a$10$MIGfGk4v0EyGdlLOZL.H8O");
+        when(saltService.encodePassword(salt, tempPassword)).thenReturn(saltingPassword = "$2a$10$MIGfGk4v0EyGdlLOZL.H8OLQDM4OeWLC4ql2RHRY/hpLbis7l60Dq");
+
+        authServiceImpl.sendTempPasswordEmail(email);
+
+        assertEquals(account.getSalt(), salt);
+        assertEquals(account.getPassword(), saltingPassword);
+        verify(accountRepository).findByEmail(email);
+        verify(accountRepository).save(account);
     }
 
     // ----- 패스워드 업데이트 -----
