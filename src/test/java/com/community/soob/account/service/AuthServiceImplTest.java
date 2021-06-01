@@ -1,6 +1,7 @@
 package com.community.soob.account.service;
 
 import com.community.soob.account.controller.dto.AccountLoginRequestDto;
+import com.community.soob.account.controller.dto.AccountPasswordUpdateRequestDto;
 import com.community.soob.account.controller.dto.AccountSignupRequestDto;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
@@ -35,7 +36,7 @@ class AuthServiceImplTest {
     @Mock AccountRepository accountRepository;
     @Mock EmailService emailService;
 
-    private UUID defaultUUID = UUID.fromString("d49de159-7c60-41bb-9f4c-51ba1087f696");
+    private final UUID defaultUUID = UUID.fromString("d49de159-7c60-41bb-9f4c-51ba1087f696");
 
     private AccountSignupRequestDto createSignupRequestDto() {
         AccountSignupRequestDto signupRequestDto = new AccountSignupRequestDto();
@@ -45,6 +46,14 @@ class AuthServiceImplTest {
         signupRequestDto.setConfirmPassword("password1234!@#$");
 
         return signupRequestDto;
+    }
+
+    private AccountPasswordUpdateRequestDto createPasswordUpdateRequestDto() {
+        AccountPasswordUpdateRequestDto passwordUpdateRequestDto = new AccountPasswordUpdateRequestDto();
+        passwordUpdateRequestDto.setCurrentPassword("password");
+        passwordUpdateRequestDto.setNewPassword("newPassword123!");
+        passwordUpdateRequestDto.setConfirmNewPassword("newPassword123!");
+        return passwordUpdateRequestDto;
     }
 
     private Account createAccount() {
@@ -310,20 +319,67 @@ class AuthServiceImplTest {
     @DisplayName("패스워드 업데이트 실패 - 패스워드 불일치")
     @Test
     void testUpdatePasswordFailureByNotMatchedPassword() {
+        AccountPasswordUpdateRequestDto passwordUpdateRequestDto = createPasswordUpdateRequestDto();
+        passwordUpdateRequestDto.setCurrentPassword("InvalidPassword");
+
+        Account account = createAccount();
+        assertThrows(AccountPasswordNotMatchedException.class, () -> {
+            authServiceImpl.updatePassword(account, passwordUpdateRequestDto);
+        });
+
+        verify(saltService).matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
     }
+
 
     @DisplayName("패스워드 업데이트 실패 - 패스워드 정규식")
     @Test
     void testUpdatePasswordFailureByInvalidPassword() {
+        AccountPasswordUpdateRequestDto passwordUpdateRequestDto = createPasswordUpdateRequestDto();
+        passwordUpdateRequestDto.setNewPassword("InvalidPass");
+        passwordUpdateRequestDto.setConfirmNewPassword("InvalidPass");
+
+        Account account = createAccount();
+        assertThrows(InvalidPasswordException.class, () -> {
+            authServiceImpl.updatePassword(account, passwordUpdateRequestDto);
+        });
+
+        verify(saltService).matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
     }
 
     @DisplayName("패스워드 업데이트 실패 - 패스워드, 확인패스워드 불일치")
     @Test
     void testUpdatePasswordFailureByNotEqualPassword() {
+        AccountPasswordUpdateRequestDto passwordUpdateRequestDto = createPasswordUpdateRequestDto();
+        passwordUpdateRequestDto.setNewPassword("newPassword123!");
+        passwordUpdateRequestDto.setConfirmNewPassword("differentNewPassword123!");
+
+        Account account = createAccount();
+        assertThrows(AccountPasswordNotMatchedException.class, () -> {
+            authServiceImpl.updatePassword(account, passwordUpdateRequestDto);
+        });
+
+        verify(saltService).matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
     }
 
     @DisplayName("패스워드 업데이트 성공 - 패스워드 일치")
     @Test
     void testUpdatePasswordSuccess() {
+        AccountPasswordUpdateRequestDto passwordUpdateRequestDto = createPasswordUpdateRequestDto();
+        Account account = createAccount();
+        String salt = "";
+        String saltingPassword = "";
+        doReturn(salt = "$2a$12$MIGfGk4v0EyGdlLOZL.H82").when(saltService).genSalt();
+        doReturn(saltingPassword = "$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
+                .when(saltService)
+                .encodePassword(salt, passwordUpdateRequestDto.getNewPassword());
+        AuthServiceImpl authService = spy(authServiceImpl);
+
+        authService.updatePassword(account, passwordUpdateRequestDto);
+
+        assertEquals(account.getPassword(), saltingPassword);
+        verify(saltService).matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
+        verify(authService).checkPasswordRegex(passwordUpdateRequestDto.getNewPassword());
+        verify(authService).checkPasswordMatching(passwordUpdateRequestDto.getNewPassword(), passwordUpdateRequestDto.getConfirmNewPassword());
+        verify(accountRepository).save(account);
     }
 }
