@@ -32,8 +32,10 @@ public class AccountServiceImpl implements AccountService {
     public void updateAccount(Account account, String nickname, MultipartFile file) {
         authService.checkNicknameRegex(nickname);
 
-        if (!file.isEmpty()) {
-            attachmentService.deleteProfileImage(account);
+        if (file != null && !file.isEmpty()) {
+            if (account.getProfileImage() != null) {
+                attachmentService.deleteProfileImage(account);
+            }
             attachmentService.uploadProfileImage(account, file, directoryName);
         }
         account.updateNickname(nickname);
