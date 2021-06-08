@@ -1,6 +1,7 @@
-package com.community.soob.account.controller;
+package com.community.soob.controller;
 
 import com.community.soob.account.config.JwtRequestFilter;
+import com.community.soob.account.controller.AccountController;
 import com.community.soob.account.controller.dto.AccountLoginRequestDto;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;

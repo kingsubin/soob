@@ -1,4 +1,4 @@
-package com.community.soob.account.service;
+package com.community.soob.service;
 
 import com.community.soob.account.controller.dto.AccountLoginRequestDto;
 import com.community.soob.account.controller.dto.AccountPasswordUpdateRequestDto;
@@ -7,6 +7,9 @@ import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.domain.Role;
 import com.community.soob.account.exception.*;
+import com.community.soob.account.service.AuthServiceImpl;
+import com.community.soob.account.service.EmailService;
+import com.community.soob.account.service.SaltService;
 import com.community.soob.util.RedisUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,14 +30,14 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
-    AuthServiceImpl authServiceImpl;
+    private AuthServiceImpl authServiceImpl;
 
     @Spy
-    SaltService saltService = new SaltService();
+    private final SaltService saltService = new SaltService();
 
-    @Mock RedisUtil redisUtil;
-    @Mock AccountRepository accountRepository;
-    @Mock EmailService emailService;
+    @Mock private RedisUtil redisUtil;
+    @Mock private AccountRepository accountRepository;
+    @Mock private EmailService emailService;
 
     private final UUID defaultUUID = UUID.fromString("d49de159-7c60-41bb-9f4c-51ba1087f696");
 
