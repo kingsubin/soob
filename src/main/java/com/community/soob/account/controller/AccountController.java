@@ -3,17 +3,8 @@ package com.community.soob.account.controller;
 import com.community.soob.account.config.CurrentAccount;
 import com.community.soob.account.controller.dto.*;
 import com.community.soob.account.domain.Account;
-import com.community.soob.account.exception.AccountPasswordNotMatchedException;
 import com.community.soob.account.service.AccountService;
 import com.community.soob.account.service.AuthService;
-import com.community.soob.account.service.SaltService;
-import com.community.soob.account.service.validator.NicknameUpdateValidator;
-import com.community.soob.account.service.validator.PasswordUpdateValidator;
-import com.community.soob.account.service.validator.SignupValidator;
-import com.community.soob.attachment.Attachment;
-import com.community.soob.attachment.AttachmentException;
-import com.community.soob.attachment.AttachmentInfo;
-import com.community.soob.attachment.AttachmentService;
 import com.community.soob.response.ResultResponse;
 import com.community.soob.util.CookieUtil;
 import com.community.soob.util.JwtUtil;
@@ -22,7 +13,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
@@ -30,7 +20,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 
 @Api(tags = {"1, Account"})
 @RequiredArgsConstructor
@@ -39,30 +28,9 @@ import java.io.IOException;
 public class AccountController {
     private final AuthService authService;
     private final AccountService accountService;
-    private final AttachmentService attachmentService;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
     private final RedisUtil redisUtil;
-    private final SaltService saltService;
-
-    private final NicknameUpdateValidator nicknameUpdateValidator;
-    private final PasswordUpdateValidator passwordUpdateValidator;
-    private final SignupValidator signupValidator;
-
-    @InitBinder("signupRequestDto")
-    public void signupInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(signupValidator);
-    }
-
-    @InitBinder("nicknameUpdateRequestDto")
-    public void nicknameInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(nicknameUpdateValidator);
-    }
-
-    @InitBinder("passwordUpdateRequestDto")
-    public void passwordInitBinder(WebDataBinder webDataBinder) {
-        webDataBinder.addValidators(passwordUpdateValidator);
-    }
 
     @ApiOperation(value = "회원가입", notes = "회원가입을 한다.")
     @PostMapping
@@ -76,7 +44,7 @@ public class AccountController {
     @PostMapping("/login")
     public ResultResponse<Void> login(
             @ApiParam(value = "로그인DTO", required = true) @Valid @RequestBody final AccountLoginRequestDto loginRequestDto,
-                                      HttpServletResponse response) {
+            HttpServletResponse response) {
         Account account = authService.login(loginRequestDto);
         String accountEmail = account.getEmail();
 
@@ -121,28 +89,8 @@ public class AccountController {
             @ApiParam(value = "회원번호", required = true) @PathVariable Long accountId,
             @ApiParam(value = "닉네임DTO")  @Valid @RequestBody final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
             @ApiParam(value = "프로필이미지") @RequestPart("file") MultipartFile file) {
-        // 프로필이미지 존재시
-        if (file != null && !file.isEmpty()) {
-            AttachmentInfo attachmentInfo = null;
-            try {
-                attachmentInfo = new AttachmentInfo(
-                        file.getOriginalFilename(),
-                        file.getContentType(),
-                        file.getBytes()
-                );
-            } catch (IOException e) {
-                throw new AttachmentException();
-            }
-
-            Attachment attachment = attachmentService.saveProfileImage(attachmentInfo);
-            accountService.updateProfileImage(account, attachment);
-        }
-
-        // 프로필이미지가 없을시
-        accountService.updateNickname(account, nicknameUpdateRequestDto.getNickname());
-
-        AccountResponseDto accountResponseDto = AccountResponseDto.fromEntity(accountService.findById(accountId));
-        return ResultResponse.of(ResultResponse.SUCCESS, accountResponseDto);
+        accountService.updateAccount(account, nicknameUpdateRequestDto.getNickname(), file);
+        return ResultResponse.of(ResultResponse.SUCCESS, AccountResponseDto.fromEntity(account));
     }
 
     @ApiOperation(value = "회원 삭제", notes = "회원번호(id) 로 회원정보를 삭제한다.")
@@ -159,12 +107,7 @@ public class AccountController {
     public ResultResponse<Void> updatePassword(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "비밀번호변경DTO", required = true) @Valid @RequestBody final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
-        boolean matches = saltService.matches(passwordUpdateRequestDto.getCurrentPassword(), account.getPassword());
-        if (!matches) {
-            throw new AccountPasswordNotMatchedException();
-        }
-
-        authService.updatePassword(account, passwordUpdateRequestDto.getNewPassword());
+        authService.updatePassword(account, passwordUpdateRequestDto);
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 
@@ -172,14 +115,14 @@ public class AccountController {
     @GetMapping("/check-email/{email}")
     public ResultResponse<Boolean> checkEmailDuplicated(
             @ApiParam(value = "EMAIL", required = true) @PathVariable String email) {
-        return ResultResponse.of(ResultResponse.SUCCESS, accountService.checkEmailDuplicated(email));
+        return ResultResponse.of(ResultResponse.SUCCESS, authService.checkEmailDuplicated(email));
     }
 
     @ApiOperation(value = "닉네임 중복체크", notes = "닉네임 중복체크를 한다.")
     @GetMapping("/check-nickname/{nickname}")
     public ResultResponse<Boolean> checkNicknameDuplicated(
             @ApiParam(value = "NICKNAME", required = true) @PathVariable String nickname) {
-        return ResultResponse.of(ResultResponse.SUCCESS, accountService.checkNicknameDuplicated(nickname));
+        return ResultResponse.of(ResultResponse.SUCCESS, authService.checkNicknameDuplicated(nickname));
     }
 
     @ApiOperation(value = "이메일 인증 체크", notes = "발급받은 key 값으로 인증 유효성 체크를 한다.")

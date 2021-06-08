@@ -7,6 +7,7 @@ import com.community.soob.comment.exception.CommentNotFoundException;
 import com.community.soob.heart.service.HeartService;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
+import com.community.soob.post.exception.AuthorNotEqualException;
 import com.community.soob.post.exception.PostNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,7 +25,7 @@ public class CommentService {
     private final HeartService heartService;
 
     @Transactional
-    public void saveComment(Account account, long postId, String content) {
+    public void createComment(Account account, long postId, String content) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(PostNotFoundException::new);
         Comment comment = Comment.builder()
@@ -47,7 +48,11 @@ public class CommentService {
     }
 
     @Transactional
-    public void updateComment(long commentId, String content) {
+    public void updateComment(Account account, long commentId, String content) {
+        if (!isAuthorMatched(account, commentId)) {
+            throw new AuthorNotEqualException();
+        }
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(CommentNotFoundException::new);
         comment.setContent(content);
@@ -55,7 +60,11 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(long commentId) {
+    public void deleteComment(Account account, long commentId) {
+        if (!isAuthorMatched(account, commentId)) {
+            throw new AuthorNotEqualException();
+        }
+
         Long heartCount = heartService.getHeartCountForComment(commentId);
         if (heartCount != null && heartCount != 0) {
             heartService.deleteAllHeartForComment(commentId);

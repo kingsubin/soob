@@ -3,16 +3,23 @@ package com.community.soob.account.service;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.exception.AccountNotFoundException;
-import com.community.soob.attachment.Attachment;
+import com.community.soob.attachment.AttachmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
+    private final AttachmentService attachmentService;
+    private final AuthService authService;
+
+    @Value("{attachment.url.profile}")
+    private String directoryName;
 
     @Override
     public Account findById(long accountId) {
@@ -22,31 +29,22 @@ public class AccountServiceImpl implements AccountService {
 
     @Transactional
     @Override
-    public void deleteAccount(long accountId) {
-        accountRepository.deleteById(accountId);
-    }
+    public void updateAccount(Account account, String nickname, MultipartFile file) {
+        authService.checkNicknameRegex(nickname);
 
-    @Transactional
-    @Override
-    public void updateNickname(Account account, String nickname) {
+        if (file != null && !file.isEmpty()) {
+            if (account.getProfileImage() != null) {
+                attachmentService.deleteProfileImage(account);
+            }
+            attachmentService.uploadProfileImage(account, file, directoryName);
+        }
         account.updateNickname(nickname);
         accountRepository.save(account);
     }
 
     @Transactional
     @Override
-    public void updateProfileImage(Account account, Attachment attachment) {
-        account.updateProfileImage(attachment);
-        accountRepository.save(account);
-    }
-
-    @Override
-    public boolean checkEmailDuplicated(String email) {
-        return accountRepository.existsByEmail(email);
-    }
-
-    @Override
-    public boolean checkNicknameDuplicated(String nickname) {
-        return accountRepository.existsByNickname(nickname);
+    public void deleteAccount(long accountId) {
+        accountRepository.deleteById(accountId);
     }
 }

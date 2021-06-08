@@ -22,11 +22,9 @@ spring:
   jwt:
     secret: kingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubin
 
-settings:
-  email-properties:
-    verificationDuration: 1800
-    verificationLink: http://localhost:8080/account/verify/
-  attachment-properties:
-    path: /Users/kingsubin/Desktop/Project/soob_backend/files
-    profileImagePath: /profileImage/
-    postImagePath: /postImage/
+logging:
+  level:
+    com:
+      amazonaws:
+        util:
+          EC2MetadataUtils: error

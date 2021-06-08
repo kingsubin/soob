@@ -1,6 +1,8 @@
 package com.community.soob.post.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.attachment.Attachment;
+import com.community.soob.attachment.AttachmentService;
 import com.community.soob.comment.service.CommentService;
 import com.community.soob.heart.service.HeartService;
 import com.community.soob.post.domain.Board;
@@ -10,8 +12,13 @@ import com.community.soob.post.domain.PostRepository;
 import com.community.soob.post.exception.BoardNotFoundException;
 import com.community.soob.post.exception.PostNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -21,6 +28,10 @@ public class PostServiceImpl implements PostService {
     private final BoardRepository boardRepository;
     private final CommentService commentService;
     private final HeartService heartService;
+    private final AttachmentService attachmentService;
+
+    @Value("{attachment.url.post}")
+    private String directoryName;
 
     @Transactional
     public Post getPost(long postId) {
@@ -33,7 +44,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public Post createPost(Account account, long boardId, String title, String content) {
+    public void createPost(Account account, long boardId, String title, String content, @Nullable List<MultipartFile> files) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(BoardNotFoundException::new);
         Post post = Post.builder()
@@ -42,19 +53,43 @@ public class PostServiceImpl implements PostService {
                 .title(title)
                 .content(content)
                 .build();
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+
+        if (files != null && !files.isEmpty()) {
+            if (files.size() == 1) {
+                attachmentService.uploadPostImage(savedPost, files.get(0), directoryName);
+            } else {
+                attachmentService.uploadPostImages(savedPost, files, directoryName);
+            }
+        }
     }
 
     @Transactional
     @Override
-    public void updatePost(Post post, String title, String content) {
+    public void updatePost(Post post, String title, String content, @Nullable List<MultipartFile> files) {
         post.updatePost(title, content);
-        postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+
+        if (files != null && !files.isEmpty()) {
+            attachmentService.deletePostImages(post);
+            if (files.size() == 1) {
+                attachmentService.uploadPostImage(savedPost, files.get(0), directoryName);
+            } else {
+                attachmentService.uploadPostImages(savedPost, files, directoryName);
+            }
+        }
     }
 
     @Transactional
     @Override
     public void deletePost(long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFoundException::new);
+        List<Attachment> attachments = post.getAttachments();
+        if (!attachments.isEmpty()) {
+            attachmentService.deletePostImages(post);
+        }
+
         Long heartCount = heartService.getHeartCountForPost(postId);
         if (heartCount != null && heartCount != 0) {
             heartService.deleteAllHeartForPost(postId);
