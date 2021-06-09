@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
@@ -51,7 +52,7 @@ class AccountServiceImplTest {
         );
     }
 
-    @DisplayName("회원 변경 성공 - 파일 없음")
+    @DisplayName("회원 변경 성공 - 파일 null")
     @Test
     void testUpdateAccountSuccessWithoutFile() {
         // given
@@ -68,8 +69,7 @@ class AccountServiceImplTest {
         then(accountRepository).should(only()).save(account);
     }
 
-    // 실제로 이미지가 들어가진 않음 ,,
-    @DisplayName("회원 변경 성공 - 파일 있음")
+    @DisplayName("회원 변경 성공 - 파일 not null")
     @Test
     void testUpdateAccountSuccessWithFile() throws IOException {
         // given
@@ -79,7 +79,7 @@ class AccountServiceImplTest {
                 "profileImage",
                 "profileImage.jpg",
                 "image/jpeg",
-                "image".getBytes()
+                new ClassPathResource("/images/profileImage.jpg").getInputStream()
         );
 
         // when
@@ -91,6 +91,7 @@ class AccountServiceImplTest {
         then(accountRepository).should().save(account);
     }
 
+    // X
     @DisplayName("회원 변경 실패 - 닉네임 정규식")
     @Test
     void testUpdateAccountFailureByInvalidNickname() {
@@ -105,26 +106,10 @@ class AccountServiceImplTest {
         });
     }
 
-    @DisplayName("회원 변경 실패 - 파일 관련문제")
-    @Test
-    void testUpdateAccountFailureByFile() throws IOException {
-        // given
-        String nickname = "modifiedNickname";
-        Account account = createAccount();
-        MockMultipartFile multipartFile = new MockMultipartFile(
-                "profileImage",
-                "profileImage.jpg",
-                "image/jpeg",
-                "image".getBytes()
-        );
-
-        // when
-
-        // then
-    }
-
     /*
     ArgumentCaptor 예제
+
+    // 1
     @DisplayName("가입하면 메일을 전송함")
     @Test
     void whenRegisterThenSendMail() {
@@ -136,5 +121,16 @@ class AccountServiceImplTest {
         String realEmail = captor.getValue();
         assertEquals("email@email.com", realEmail);
     }
+
+    // 2
+    ArgumentCaptor<String> mailBodyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(emailService).sendEmail(eq(email), any, mailBodyCaptor.capture());
+    String[] tokens = mailBodyCaptor.getValue().split(" ");
+    String passwordSent = tokens[tokens.length - 1];
+
+    ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+    verify(accountRepository).save(accountCaptor.capture());
+
+    assertTrue(saltService.matches(passwordSent, accountCaptor.getValue().getPassword()));
      */
 }
