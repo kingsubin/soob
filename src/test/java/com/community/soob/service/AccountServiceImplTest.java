@@ -3,14 +3,13 @@ package com.community.soob.service;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.domain.Role;
-import com.community.soob.account.exception.InvalidNicknameException;
 import com.community.soob.account.service.AccountServiceImpl;
 import com.community.soob.account.service.AuthService;
 import com.community.soob.attachment.AttachmentService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
@@ -19,16 +18,15 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.only;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceImplTest {
-    private AccountServiceImpl accountServiceImpl;
-
+    @InjectMocks private AccountServiceImpl accountServiceImpl;
     @Mock private AccountRepository accountRepository;
     @Mock private AttachmentService attachmentService;
     @Mock private AuthService authService;
@@ -43,13 +41,6 @@ class AccountServiceImplTest {
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
                 .profileImage(null)
                 .build();
-    }
-
-    @BeforeEach
-    void setUp() {
-        this.accountServiceImpl = new AccountServiceImpl(
-                accountRepository, attachmentService, authService
-        );
     }
 
     @DisplayName("회원 변경 성공 - 파일 null")
@@ -89,21 +80,6 @@ class AccountServiceImplTest {
         assertEquals(nickname, account.getNickname());
         then(attachmentService).should().uploadProfileImage(eq(account), eq(multipartFile), any());
         then(accountRepository).should().save(account);
-    }
-
-    // X
-    @DisplayName("회원 변경 실패 - 닉네임 정규식")
-    @Test
-    void testUpdateAccountFailureByInvalidNickname() {
-        // given
-        String nickname = "InvalidNickname!@#";
-        Account account = createAccount();
-
-        // when
-        // then
-        assertThrows(InvalidNicknameException.class, () -> {
-            accountServiceImpl.updateAccount(account, nickname, null);
-        });
     }
 
     /*
