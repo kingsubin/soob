@@ -4,8 +4,6 @@ import com.community.soob.account.config.CurrentAccount;
 import com.community.soob.account.domain.Account;
 import com.community.soob.post.controller.dto.PostRequestDto;
 import com.community.soob.post.controller.dto.PostResponseDto;
-import com.community.soob.post.domain.Post;
-import com.community.soob.post.exception.AuthorNotEqualException;
 import com.community.soob.post.service.PostService;
 import com.community.soob.response.ResultResponse;
 import io.swagger.annotations.Api;
@@ -44,8 +42,7 @@ public class PostController {
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "게시판번호", required = true) @PathVariable Long boardId,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId) {
-        PostResponseDto responseDto = PostResponseDto.fromEntity(postService.getPost(postId));
-        return ResultResponse.of(ResultResponse.SUCCESS, responseDto);
+        return ResultResponse.of(ResultResponse.SUCCESS, PostResponseDto.fromEntity(postService.getPost(postId)));
     }
 
     @ApiOperation(value = "게시글 수정", notes = "게시글번호로 게시글을 수정한다.")
@@ -56,13 +53,8 @@ public class PostController {
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId,
             @ApiParam(value = "게시글수정DTO", required = true) @Valid @RequestBody final PostRequestDto updateRequestDto,
             @ApiParam(value = "이미지") @RequestParam(name = "files") List<MultipartFile> files) {
-        boolean authorMatched = postService.isAuthorMatched(account, postId);
-        if (!authorMatched) {
-            throw new AuthorNotEqualException();
-        }
-        Post post = postService.getPost(postId);
-        postService.updatePost(post, updateRequestDto.getTitle(), updateRequestDto.getContent(), files);
-        return ResultResponse.of(ResultResponse.SUCCESS, PostResponseDto.fromEntity(post));
+        postService.updatePost(account, postId, updateRequestDto.getTitle(), updateRequestDto.getContent(), files);
+        return ResultResponse.of(ResultResponse.SUCCESS, PostResponseDto.fromEntity(postService.getPost(postId)));
     }
 
     @ApiOperation(value = "게시글 삭제", notes = "게시글번호로 게시글을 삭제한다.")
@@ -71,11 +63,7 @@ public class PostController {
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "게시판번호", required = true) @PathVariable Long boardId,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId) {
-        boolean authorMatched = postService.isAuthorMatched(account, postId);
-        if (!authorMatched) {
-            throw new AuthorNotEqualException();
-        }
-        postService.deletePost(postId);
+        postService.deletePost(account, postId);
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 }

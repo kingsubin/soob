@@ -9,7 +9,7 @@ import java.util.List;
 public interface PostService {
     Post getPost(long postId);
     void createPost(Account account, long boardId, String title, String content, List<MultipartFile> files);
-    void updatePost(Post post, String title, String content, List<MultipartFile> files);
-    void deletePost(long postId);
+    void updatePost(Account account, long postId, String title, String content, List<MultipartFile> files);
+    void deletePost(Account account, long postId);
     boolean isAuthorMatched(Account account, long postId);
 }
