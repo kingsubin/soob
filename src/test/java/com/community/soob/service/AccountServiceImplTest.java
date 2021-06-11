@@ -55,7 +55,6 @@ class AccountServiceImplTest {
 
         // then
         assertEquals(nickname, account.getNickname());
-
         then(attachmentService).should(never()).uploadProfileImage(any(), any(), any());
         then(accountRepository).should(only()).save(account);
     }
@@ -81,32 +80,4 @@ class AccountServiceImplTest {
         then(attachmentService).should().uploadProfileImage(eq(account), eq(multipartFile), any());
         then(accountRepository).should().save(account);
     }
-
-    /*
-    ArgumentCaptor 예제
-
-    // 1
-    @DisplayName("가입하면 메일을 전송함")
-    @Test
-    void whenRegisterThenSendMail() {
-        userRegister.register("id", "pw", "email@email.com");
-
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        BDDMockito.then(mockEmailNotifier).should().sendRegisterEmail(captor.capture());
-
-        String realEmail = captor.getValue();
-        assertEquals("email@email.com", realEmail);
-    }
-
-    // 2
-    ArgumentCaptor<String> mailBodyCaptor = ArgumentCaptor.forClass(String.class);
-    verify(emailService).sendEmail(eq(email), any, mailBodyCaptor.capture());
-    String[] tokens = mailBodyCaptor.getValue().split(" ");
-    String passwordSent = tokens[tokens.length - 1];
-
-    ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
-    verify(accountRepository).save(accountCaptor.capture());
-
-    assertTrue(saltService.matches(passwordSent, accountCaptor.getValue().getPassword()));
-     */
 }
