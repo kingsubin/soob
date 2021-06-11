@@ -82,4 +82,8 @@ public class Post extends AuditedEntity {
         attachments.remove(attachment);
         attachment.setPost(null);
     }
+
+    public void removeAttachments(){
+        this.attachments = new ArrayList<>();
+    }
 }

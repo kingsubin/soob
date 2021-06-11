@@ -25,31 +25,31 @@ public class AttachmentService {
     public void uploadProfileImage(Account account, MultipartFile file, String directoryName) {
         String fileName = directoryName + createFileName(file.getOriginalFilename());
         String path = uploadImage(file, fileName);
-
-        AttachmentDto attachmentDto = AttachmentDto.builder()
+        Attachment attachment = Attachment.builder()
                 .fileName(fileName)
                 .filePath(path)
                 .build();
-        Attachment savedAttachment = attachmentRepository.save(attachmentDto.toEntity());
-        account.updateProfileImage(savedAttachment);
 
-        attachmentRepository.save(savedAttachment);
+        Attachment savedAttachment = attachmentRepository.save(attachment);
+
+        account.updateProfileImage(savedAttachment);
         accountRepository.save(account);
     }
 
     public void uploadPostImage(Post post, MultipartFile file, String directoryName) {
         String fileName = directoryName + createFileName(file.getOriginalFilename());
         String path = uploadImage(file, fileName);
-
-        AttachmentDto attachmentDto = AttachmentDto.builder()
+        Attachment attachment = Attachment.builder()
                 .fileName(fileName)
                 .filePath(path)
                 .build();
-        Attachment savedAttachment = attachmentRepository.save(attachmentDto.toEntity());
-        savedAttachment.setPost(post);
-        post.addAttachment(savedAttachment);
 
+        Attachment savedAttachment = attachmentRepository.save(attachment);
+
+        savedAttachment.setPost(post);
         attachmentRepository.save(savedAttachment);
+
+        post.addAttachment(savedAttachment);
         postRepository.save(post);
     }
 
@@ -62,10 +62,11 @@ public class AttachmentService {
     public void deletePostImages(Post post) {
         List<Attachment> attachments = post.getAttachments();
         for (Attachment attachment : attachments) {
-            post.removeAttachment(attachment);
             s3Service.delete(attachment.getFileName());
             attachmentRepository.delete(attachment);
         }
+
+        post.removeAttachments();
         postRepository.save(post);
     }
 
