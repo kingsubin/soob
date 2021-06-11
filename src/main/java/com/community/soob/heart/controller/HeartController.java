@@ -2,7 +2,6 @@ package com.community.soob.heart.controller;
 
 import com.community.soob.account.config.CurrentAccount;
 import com.community.soob.account.domain.Account;
-import com.community.soob.heart.controller.dto.HeartResponseDto;
 import com.community.soob.heart.service.HeartService;
 import com.community.soob.response.ResultResponse;
 import io.swagger.annotations.Api;
@@ -21,20 +20,20 @@ public class HeartController {
 
     @ApiOperation(value = "게시글 하트", notes = "특정 게시글 하트 클릭")
     @PostMapping("/posts/{postId}")
-    public ResultResponse<HeartResponseDto> putHeartToPost(
+    public ResultResponse<Void> putHeartToPost(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId) {
-        HeartResponseDto responseDto = heartService.toggleHeartToPost(account, postId);
-        return ResultResponse.of(ResultResponse.SUCCESS, responseDto);
+        heartService.toggleHeartToPost(account, postId);
+        return ResultResponse.of(ResultResponse.SUCCESS);
     }
 
     @ApiOperation(value = "댓글 하트", notes = "특정 댓글 하트 클릭")
     @PostMapping("/comments/{commentId}")
-    public ResultResponse<HeartResponseDto> putHeartToComment(
+    public ResultResponse<Void> putHeartToComment(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "댓글번호", required = true) @PathVariable Long commentId) {
-        HeartResponseDto responseDto = heartService.toggleHeartToComment(account, commentId);
-        return ResultResponse.of(ResultResponse.SUCCESS, responseDto);
+        heartService.toggleHeartToComment(account, commentId);
+        return ResultResponse.of(ResultResponse.SUCCESS);
     }
 
     @ApiOperation(value = "게시글 하트 갯수 조회", notes = "특정 게시글 하트 갯수 조회")

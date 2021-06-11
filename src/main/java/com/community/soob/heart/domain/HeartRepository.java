@@ -3,7 +3,7 @@ package com.community.soob.heart.domain;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface HeartRepository extends JpaRepository<Heart, Long> {
-    Heart findByPostIdAndAccountId(Long postId, Long accountIdd);
+    Heart findByPostIdAndAccountId(Long postId, Long accountId);
     Heart findByCommentIdAndAccountId(Long commentId, Long accountId);
     Long countByPostId(Long postId);
     Long countByCommentId(Long commentId);

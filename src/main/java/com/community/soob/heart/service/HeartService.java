@@ -4,7 +4,6 @@ import com.community.soob.account.domain.Account;
 import com.community.soob.comment.domain.Comment;
 import com.community.soob.comment.domain.CommentRepository;
 import com.community.soob.comment.exception.CommentNotFoundException;
-import com.community.soob.heart.controller.dto.HeartResponseDto;
 import com.community.soob.heart.domain.Heart;
 import com.community.soob.heart.domain.HeartRepository;
 import com.community.soob.post.domain.Post;
@@ -23,7 +22,7 @@ public class HeartService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public HeartResponseDto toggleHeartToPost(Account account, long postId) {
+    public void toggleHeartToPost(Account account, long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(PostNotFoundException::new);
         Heart heart = Heart.builder()
@@ -41,11 +40,10 @@ public class HeartService {
         }
 
         postRepository.save(post);
-        return new HeartResponseDto(account.getId(), postId, null);
     }
 
     @Transactional
-    public HeartResponseDto toggleHeartToComment(Account account, long commentId) {
+    public void toggleHeartToComment(Account account, long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(CommentNotFoundException::new);
         Heart heart = Heart.builder()
@@ -63,7 +61,6 @@ public class HeartService {
         }
 
         commentRepository.save(comment);
-        return new HeartResponseDto(account.getId(), null, commentId);
     }
 
     public Long getHeartCountForPost(long postId) {
