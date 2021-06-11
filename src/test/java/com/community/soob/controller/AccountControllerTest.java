@@ -121,7 +121,7 @@ class AccountControllerTest {
                 .profileImage(null)
                 .build();
 
-        when(authService.login(loginRequestDto))
+        when(authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword()))
                 .thenReturn(account);
 
         verify(jwtUtil).generateToken(email);
