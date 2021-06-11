@@ -50,6 +50,7 @@ public class Comment extends AuditedEntity {
     public void increaseHeart() {
         this.heartCount += 1;
     }
+
     public void decreaseHeart() {
         this.heartCount -= 1;
     }

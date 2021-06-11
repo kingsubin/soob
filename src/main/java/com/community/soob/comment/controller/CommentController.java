@@ -53,8 +53,7 @@ public class CommentController {
             @ApiParam(value = "댓글번호", required = true) @PathVariable Long commentId,
             @ApiParam(value = "댓글수정DTO", required = true) @RequestBody @Valid final CommentRequestDto requestDto) {
         commentService.updateComment(account, commentId, requestDto.getContent());
-        CommentResponseDto commentResponseDto = CommentResponseDto.fromEntity(commentService.getComment(commentId));
-        return ResultResponse.of(ResultResponse.SUCCESS, commentResponseDto);
+        return ResultResponse.of(ResultResponse.SUCCESS, CommentResponseDto.fromEntity(commentService.getComment(commentId)));
     }
 
     @ApiOperation(value = "댓글 삭제", notes = "특정 게시글의 댓글을 댓글번호로 삭제한다.")
