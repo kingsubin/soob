@@ -45,7 +45,7 @@ public class AccountController {
     public ResultResponse<Void> login(
             @ApiParam(value = "로그인DTO", required = true) @Valid @RequestBody final AccountLoginRequestDto loginRequestDto,
             HttpServletResponse response) {
-        Account account = authService.login(loginRequestDto);
+        Account account = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
         String accountEmail = account.getEmail();
 
         String jwt = jwtUtil.generateToken(accountEmail);
@@ -107,7 +107,7 @@ public class AccountController {
     public ResultResponse<Void> updatePassword(
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "비밀번호변경DTO", required = true) @Valid @RequestBody final AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
-        authService.updatePassword(account, passwordUpdateRequestDto);
+        authService.updatePassword(account, passwordUpdateRequestDto.getCurrentPassword(), passwordUpdateRequestDto.getNewPassword(), passwordUpdateRequestDto.getConfirmNewPassword());
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
 

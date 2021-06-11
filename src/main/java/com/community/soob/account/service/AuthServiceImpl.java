@@ -1,7 +1,5 @@
 package com.community.soob.account.service;
 
-import com.community.soob.account.controller.dto.AccountLoginRequestDto;
-import com.community.soob.account.controller.dto.AccountPasswordUpdateRequestDto;
 import com.community.soob.account.controller.dto.AccountSignupRequestDto;
 import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
@@ -56,10 +54,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Account login(AccountLoginRequestDto loginRequestDto) {
-        Account account = accountRepository.findByEmail(loginRequestDto.getEmail())
+    public Account login(String email, String password) {
+        Account account = accountRepository.findByEmail(email)
                 .orElseThrow(AccountNotFoundException::new);
-        boolean matches = saltService.matches(loginRequestDto.getPassword(), account.getPassword());
+        boolean matches = saltService.matches(password, account.getPassword());
         if (!matches) {
             throw new AccountPasswordNotMatchedException();
         }
@@ -104,11 +102,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @Override
-    public void updatePassword(Account account, AccountPasswordUpdateRequestDto passwordUpdateRequestDto) {
-        String currentPassword = passwordUpdateRequestDto.getCurrentPassword();
-        String newPassword = passwordUpdateRequestDto.getNewPassword();
-        String confirmNewPassword = passwordUpdateRequestDto.getConfirmNewPassword();
-
+    public void updatePassword(Account account, String currentPassword, String newPassword, String confirmNewPassword) {
         boolean matches = saltService.matches(currentPassword, account.getPassword());
         if (!matches) {
             throw new AccountPasswordNotMatchedException();

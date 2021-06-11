@@ -1,17 +1,15 @@
 package com.community.soob.account.service;
 
-import com.community.soob.account.controller.dto.AccountLoginRequestDto;
-import com.community.soob.account.controller.dto.AccountPasswordUpdateRequestDto;
 import com.community.soob.account.controller.dto.AccountSignupRequestDto;
 import com.community.soob.account.domain.Account;
 
 public interface AuthService {
     void signup(AccountSignupRequestDto signupRequestDto);
-    Account login(AccountLoginRequestDto loginRequestDto);
+    Account login(String email, String password);
     void sendSignupVerificationEmail(String email);
     void verifyEmail(String key);
     void sendTempPasswordEmail(String email);
-    void updatePassword(Account account, AccountPasswordUpdateRequestDto passwordUpdateRequestDto);
+    void updatePassword(Account account, String currentPassword, String newPassword, String confirmNewPassword);
 
     boolean checkEmailDuplicated(String email);
     boolean checkNicknameDuplicated(String nickname);
