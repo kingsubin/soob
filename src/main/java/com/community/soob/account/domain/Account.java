@@ -29,6 +29,9 @@ public class Account extends AuditedEntity {
 
     private String salt;
 
+    @Column(name = "level_point")
+    private int levelPoint;
+
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -38,12 +41,13 @@ public class Account extends AuditedEntity {
     private Attachment profileImage;
 
     @Builder
-    public Account(Long id, String email, String password, String nickname, String salt, Role role, Attachment profileImage) {
+    public Account(Long id, String email, String password, String nickname, String salt, int levelPoint, Role role, Attachment profileImage) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.salt = salt;
+        this.levelPoint = levelPoint;
         this.role = role;
         this.profileImage = profileImage;
     }

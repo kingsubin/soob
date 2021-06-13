@@ -10,15 +10,17 @@ import java.time.LocalDateTime;
 public class AccountResponseDto {
     private String email;
     private String nickname;
+    private int levelPoint;
     private String role;
     private String profileImagePath;
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;
 
     @Builder
-    public AccountResponseDto(String email, String nickname, String role, String profileImagePath, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
+    public AccountResponseDto(String email, String nickname, int levelPoint, String role, String profileImagePath, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
         this.email = email;
         this.nickname = nickname;
+        this.levelPoint = levelPoint;
         this.role = role;
         this.profileImagePath = profileImagePath;
         this.createdAt = createdAt;
@@ -30,6 +32,7 @@ public class AccountResponseDto {
             return AccountResponseDto.builder()
                     .email(account.getEmail())
                     .nickname(account.getNickname())
+                    .levelPoint(account.getLevelPoint())
                     .role(account.getRole().name())
                     .createdAt(account.getCreatedAt())
                     .lastModifiedAt(account.getLastModifiedAt())
@@ -38,6 +41,7 @@ public class AccountResponseDto {
             return AccountResponseDto.builder()
                     .email(account.getEmail())
                     .nickname(account.getNickname())
+                    .levelPoint(account.getLevelPoint())
                     .role(account.getRole().name())
                     .profileImagePath(account.getProfileImage().getFilePath())
                     .createdAt(account.getCreatedAt())
