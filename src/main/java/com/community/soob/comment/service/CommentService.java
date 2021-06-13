@@ -1,6 +1,7 @@
 package com.community.soob.comment.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.comment.domain.Comment;
 import com.community.soob.comment.domain.CommentRepository;
 import com.community.soob.comment.exception.CommentNotFoundException;
@@ -16,12 +17,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final AccountRepository accountRepository;
     private final HeartService heartService;
 
     @Transactional
@@ -35,6 +39,10 @@ public class CommentService {
                 .build();
 
         commentRepository.save(comment);
+
+        account.increaseCommentPoint();
+        account.updateLevel();
+        accountRepository.save(account);
     }
 
     public Page<Comment> getComments(long postId, Pageable pageable) {
@@ -68,8 +76,13 @@ public class CommentService {
         Long heartCount = heartService.getHeartCountForComment(commentId);
         if (heartCount != null && heartCount != 0) {
             heartService.deleteAllHeartForComment(commentId);
+            account.decreaseCommentHeartPoint(heartCount);
         }
         commentRepository.deleteById(commentId);
+
+        account.decreaseCommentPoint();
+        account.updateLevel();
+        accountRepository.save(account);
     }
 
     public boolean isAuthorMatched(Account account, long commentId) {
@@ -83,6 +96,10 @@ public class CommentService {
     }
 
     public void deleteAllCommentForPost(long postId) {
-        commentRepository.deleteAllByPostId(postId);
+        List<Comment> comments = commentRepository.findAllByPostId(postId);
+        for (Comment comment : comments) {
+            Account author = comment.getAuthor();
+            this.deleteComment(author, comment.getId());
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.community.soob.heart.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.comment.domain.Comment;
 import com.community.soob.comment.domain.CommentRepository;
 import com.community.soob.comment.exception.CommentNotFoundException;
@@ -20,6 +21,7 @@ public class HeartService {
     private final HeartRepository heartRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final AccountRepository accountRepository;
 
     @Transactional
     public void toggleHeartToPost(Account account, long postId) {
@@ -29,17 +31,23 @@ public class HeartService {
                 .account(account)
                 .post(post)
                 .build();
+        Account author = post.getAuthor();
 
         Heart foundHeart = heartRepository.findByPostIdAndAccountId(postId, account.getId());
         if (foundHeart == null) {
             heartRepository.save(heart);
             post.increaseHeart();
+            author.increasePostHeartPoint();
         } else {
             heartRepository.delete(foundHeart);
             post.decreaseHeart();
+            author.decreasePostHeartPoint(1);
         }
 
+        author.updateLevel();
+
         postRepository.save(post);
+        accountRepository.save(author);
     }
 
     @Transactional
@@ -50,17 +58,23 @@ public class HeartService {
                 .account(account)
                 .comment(comment)
                 .build();
+        Account author = comment.getAuthor();
 
         Heart foundHeart = heartRepository.findByCommentIdAndAccountId(commentId, account.getId());
         if (foundHeart == null) {
             heartRepository.save(heart);
             comment.increaseHeart();
+            author.increaseCommentHeartPoint();
         } else {
             heartRepository.delete(foundHeart);
             comment.decreaseHeart();
+            author.decreaseCommentHeartPoint(1);
         }
 
+        author.updateLevel();
+
         commentRepository.save(comment);
+        accountRepository.save(author);
     }
 
     public Long getHeartCountForPost(long postId) {

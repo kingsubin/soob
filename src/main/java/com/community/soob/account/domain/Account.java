@@ -68,4 +68,51 @@ public class Account extends AuditedEntity {
         this.salt = salt;
         this.password = saltingPassword;
     }
+
+    public void increasePostPoint() {
+        this.levelPoint += 10;
+    }
+
+    public void decreasePostPoint() {
+        this.levelPoint -= 10;
+    }
+
+    public void increaseCommentPoint() {
+        this.levelPoint += 5;
+    }
+
+    public void decreaseCommentPoint() {
+        this.levelPoint -= 5;
+    }
+
+    public void increasePostHeartPoint() {
+        this.levelPoint += 20;
+    }
+
+    public void decreasePostHeartPoint(long count) {
+        this.levelPoint -= count * 20;
+    }
+
+    public void increaseCommentHeartPoint() {
+        this.levelPoint += 10;
+    }
+
+    public void decreaseCommentHeartPoint(long count) {
+        this.levelPoint -= count * 10;
+    }
+
+    public void updateLevel() {
+        int levelPoint = this.levelPoint;
+        int level = this.role.getLevel();
+
+        if (level == 1 && levelPoint < 250) {
+            this.role = Role.LEVEL_1;
+        }
+        if (levelPoint >= 250) {
+            this.role = Role.LEVEL_2;
+        }
+        if (levelPoint >= 750) {
+            this.role = Role.LEVEL_3;
+        }
+    }
 }

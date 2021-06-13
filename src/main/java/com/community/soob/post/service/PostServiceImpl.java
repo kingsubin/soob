@@ -1,6 +1,7 @@
 package com.community.soob.post.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.attachment.Attachment;
 import com.community.soob.attachment.AttachmentService;
 import com.community.soob.comment.service.CommentService;
@@ -27,6 +28,7 @@ import java.util.List;
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
+    private final AccountRepository accountRepository;
     private final CommentService commentService;
     private final HeartService heartService;
     private final AttachmentService attachmentService;
@@ -63,6 +65,10 @@ public class PostServiceImpl implements PostService {
                 attachmentService.uploadPostImages(savedPost, files, directoryName);
             }
         }
+
+        account.increasePostPoint();
+        account.updateLevel();
+        accountRepository.save(account);
     }
 
     @Transactional
@@ -104,6 +110,7 @@ public class PostServiceImpl implements PostService {
         Long heartCount = heartService.getHeartCountForPost(postId);
         if (heartCount != null && heartCount != 0) {
             heartService.deleteAllHeartForPost(postId);
+            account.decreasePostHeartPoint(heartCount);
         }
 
         Long commentCount = commentService.getCommentCountForPost(postId);
@@ -112,6 +119,10 @@ public class PostServiceImpl implements PostService {
         }
 
         postRepository.deleteById(postId);
+
+        account.decreasePostPoint();
+        account.updateLevel();
+        accountRepository.save(account);
     }
 
     @Override
