@@ -1,6 +1,7 @@
 package com.community.soob.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.domain.Role;
 import com.community.soob.comment.domain.Comment;
 import com.community.soob.comment.domain.CommentRepository;
@@ -25,13 +26,14 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceTest {
     @InjectMocks private CommentService commentService;
     @Mock private CommentRepository commentRepository;
     @Mock private PostRepository postRepository;
+    @Mock private AccountRepository accountRepository;
     @Mock private HeartService heartService;
 
     private Account createAccount() {
@@ -40,7 +42,8 @@ public class CommentServiceTest {
                 .email("test@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
                 .nickname("test")
-                .role(Role.NOT_PERMITTED)
+                .levelPoint(50)
+                .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
                 .profileImage(null)
                 .build();
@@ -99,9 +102,51 @@ public class CommentServiceTest {
         ArgumentCaptor<Comment> commentArgumentCaptor = ArgumentCaptor.forClass(Comment.class);
         then(commentRepository).should().save(commentArgumentCaptor.capture());
 
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
         assertEquals(post, commentArgumentCaptor.getValue().getPost());
         assertEquals(account, commentArgumentCaptor.getValue().getAuthor());
         assertEquals(content, commentArgumentCaptor.getValue().getContent());
+
+        assertEquals(55, accountArgumentCaptor.getValue().getLevelPoint());
+    }
+
+    @DisplayName("댓글 작성 성공 - 댓글 작성을 통해 작성자의 레벨 2로 업데이트")
+    @Test
+    void testCreateCommentAndAccountUpdateLevelSuccess() {
+        // given
+        long postId = 1L;
+        String content = "test-comment";
+        Account account = Account.builder()
+                .id(2L)
+                .email("test@test.com")
+                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
+                .nickname("test")
+                .role(Role.LEVEL_1)
+                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
+                .levelPoint(245)
+                .profileImage(null)
+                .build();
+        Post post = createPost();
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+
+        // when
+        commentService.createComment(account, postId, content);
+
+        // then
+        ArgumentCaptor<Comment> commentArgumentCaptor = ArgumentCaptor.forClass(Comment.class);
+        then(commentRepository).should().save(commentArgumentCaptor.capture());
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        assertEquals(post, commentArgumentCaptor.getValue().getPost());
+        assertEquals(account, commentArgumentCaptor.getValue().getAuthor());
+        assertEquals(content, commentArgumentCaptor.getValue().getContent());
+
+        assertEquals(250, accountArgumentCaptor.getValue().getLevelPoint());
+        assertEquals(Role.LEVEL_2, accountArgumentCaptor.getValue().getRole());
     }
 
     // ----- 댓글 수정 -----
@@ -171,6 +216,12 @@ public class CommentServiceTest {
         // then
         then(heartService).should().deleteAllHeartForComment(commentId);
         then(commentRepository).should().deleteById(commentId);
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        // 50 - (5 + (10*10)) => -55
+        assertEquals(-55, accountArgumentCaptor.getValue().getLevelPoint());
     }
 
     @DisplayName("댓글 삭제 성공 - 하트가 존재하지 않은 댓글")
@@ -196,6 +247,53 @@ public class CommentServiceTest {
         // then
         then(heartService).should(never()).deleteAllHeartForComment(commentId);
         then(commentRepository).should().deleteById(commentId);
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        // 50 - 5 => 45
+        assertEquals(45, accountArgumentCaptor.getValue().getLevelPoint());
+    }
+
+    @DisplayName("댓글 삭제 성공 - 댓글 삭제로 인해 레벨 1로 업데이트")
+    @Test
+    void testDeleteCommentAndAccountUpdateLevelSuccess() {
+        // given
+        long commentId = 1L;
+        Account account = Account.builder()
+                .id(2L)
+                .email("test@test.com")
+                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
+                .nickname("test")
+                .role(Role.LEVEL_2)
+                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
+                .levelPoint(250)
+                .profileImage(null)
+                .build();
+        Comment comment = Comment.builder()
+                .id(1L)
+                .author(account)
+                .post(createPost())
+                .content("comment")
+                .heartCount(0)
+                .build();
+
+        given(heartService.getHeartCountForComment(commentId)).willReturn(10L);
+        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+        // when
+        commentService.deleteComment(account, commentId);
+
+        // then
+        then(heartService).should().deleteAllHeartForComment(commentId);
+        then(commentRepository).should().deleteById(commentId);
+
+        // 250 - ((10 * 10) + 5) => 145
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        assertEquals(145, accountArgumentCaptor.getValue().getLevelPoint());
+        assertEquals(Role.LEVEL_1, accountArgumentCaptor.getValue().getRole());
     }
 
     // ----- 댓글 작성자 확인 -----
@@ -224,7 +322,7 @@ public class CommentServiceTest {
                 .email("test3@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt23")
                 .nickname("test3")
-                .role(Role.NOT_PERMITTED)
+                .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO3")
                 .profileImage(null)
                 .build();
