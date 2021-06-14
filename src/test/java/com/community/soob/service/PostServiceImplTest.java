@@ -1,6 +1,7 @@
 package com.community.soob.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.domain.Role;
 import com.community.soob.attachment.AttachmentService;
 import com.community.soob.comment.service.CommentService;
@@ -16,6 +17,7 @@ import com.community.soob.post.service.PostServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,6 +43,7 @@ public class PostServiceImplTest {
     @InjectMocks private PostServiceImpl postServiceImpl;
     @Mock private PostRepository postRepository;
     @Mock private BoardRepository boardRepository;
+    @Mock private AccountRepository accountRepository;
     @Mock private CommentService commentService;
     @Mock private HeartService heartService;
     @Mock private AttachmentService attachmentService;
@@ -51,8 +54,9 @@ public class PostServiceImplTest {
                 .email("test@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
                 .nickname("test")
-                .role(Role.NOT_PERMITTED)
+                .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
+                .levelPoint(50)
                 .profileImage(null)
                 .build();
     }
@@ -140,6 +144,11 @@ public class PostServiceImplTest {
 
         // then
         then(postRepository).should().save(any());
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        assertEquals(60, accountArgumentCaptor.getValue().getLevelPoint());
     }
 
     @DisplayName("게시글 작성 성공 - 1개의 이미지")
@@ -166,6 +175,11 @@ public class PostServiceImplTest {
         // then
         then(postRepository).should().save(any());
         then(attachmentService).should().uploadPostImage(any(), eq(files.get(0)), any());
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        assertEquals(60, accountArgumentCaptor.getValue().getLevelPoint());
     }
 
     @DisplayName("게시글 작성 성공 - 복수의 이미지")
@@ -196,6 +210,44 @@ public class PostServiceImplTest {
         // then
         then(postRepository).should().save(any());
         then(attachmentService).should().uploadPostImages(any(), eq(files), any());
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        assertEquals(60, accountArgumentCaptor.getValue().getLevelPoint());
+    }
+
+    @DisplayName("게시글 작성 성공 - 게시글 작성을 통해 작성자의 레벨이 2로 업데이트")
+    @Test
+    void testCreatePostAndAccountUpdateLevelSuccess() {
+        // given
+        Account account = Account.builder()
+                .id(2L)
+                .email("test@test.com")
+                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
+                .nickname("test")
+                .role(Role.NOT_PERMITTED)
+                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
+                .levelPoint(240)
+                .profileImage(null)
+                .build();
+        long boardId = 1L;
+        String title = "test-title";
+        String content = "test-content";
+        Board board = createBoard();
+        given(boardRepository.findById(boardId)).willReturn(Optional.of(board));
+
+        // when
+        postServiceImpl.createPost(account, boardId, title, content, null);
+
+        // then
+        then(postRepository).should().save(any());
+
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+
+        assertEquals(250, accountArgumentCaptor.getValue().getLevelPoint());
+        assertEquals(Role.LEVEL_2, accountArgumentCaptor.getValue().getRole());
     }
 
     // ----- 게시글 수정 -----
@@ -321,6 +373,12 @@ public class PostServiceImplTest {
         then(heartService).should().deleteAllHeartForPost(postId);
         then(commentService).should().deleteAllCommentForPost(postId);
         then(postRepository).should().deleteById(postId);
+
+        // 50 - 210 => expected -160
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+        assertEquals(-160, accountArgumentCaptor.getValue().getLevelPoint());
+        assertEquals(Role.LEVEL_1, accountArgumentCaptor.getValue().getRole());
     }
 
     @DisplayName("게시글 삭제 성공 - 추천, 댓글 없을때 삭제")
@@ -342,5 +400,47 @@ public class PostServiceImplTest {
         then(heartService).should(never()).deleteAllHeartForPost(postId);
         then(commentService).should(never()).deleteAllCommentForPost(postId);
         then(postRepository).should().deleteById(postId);
+
+        // 50 - 10 => expected 40
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+        assertEquals(40, accountArgumentCaptor.getValue().getLevelPoint());
+        assertEquals(Role.LEVEL_1, accountArgumentCaptor.getValue().getRole());
+    }
+
+    @DisplayName("게시글 삭제 성공 - 게시글 삭제로 인해 레벨 1로 다운")
+    @Test
+    void testDeletePostAndAccountUpdateLevelSuccess() {
+        // given
+        long postId = 1L;
+        Account account = Account.builder()
+                .id(2L)
+                .email("test@test.com")
+                .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
+                .nickname("test")
+                .role(Role.LEVEL_2)
+                .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
+                .levelPoint(250)
+                .profileImage(null)
+                .build();
+        Post post = createPost();
+
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(heartService.getHeartCountForPost(postId)).willReturn(0L);
+        given(commentService.getCommentCountForPost(postId)).willReturn(0L);
+
+        // when
+        postServiceImpl.deletePost(account, postId);
+
+        // then
+        then(heartService).should(never()).deleteAllHeartForPost(postId);
+        then(commentService).should(never()).deleteAllCommentForPost(postId);
+        then(postRepository).should().deleteById(postId);
+
+        // 250 - 10 => expected 240, level 1
+        ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
+        then(accountRepository).should().save(accountArgumentCaptor.capture());
+        assertEquals(240, accountArgumentCaptor.getValue().getLevelPoint());
+        assertEquals(Role.LEVEL_1, accountArgumentCaptor.getValue().getRole());
     }
 }

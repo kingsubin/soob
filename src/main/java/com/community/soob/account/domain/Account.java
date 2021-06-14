@@ -105,7 +105,7 @@ public class Account extends AuditedEntity {
         int levelPoint = this.levelPoint;
         int level = this.role.getLevel();
 
-        if (level == 1 && levelPoint < 250) {
+        if (level > 0 && levelPoint < 250) {
             this.role = Role.LEVEL_1;
         }
         if (levelPoint >= 250) {
