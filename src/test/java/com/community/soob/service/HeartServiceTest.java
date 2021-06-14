@@ -1,6 +1,7 @@
 package com.community.soob.service;
 
 import com.community.soob.account.domain.Account;
+import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.domain.Role;
 import com.community.soob.comment.domain.Comment;
 import com.community.soob.comment.domain.CommentRepository;
@@ -36,6 +37,7 @@ public class HeartServiceTest {
     @Mock private HeartRepository heartRepository;
     @Mock private PostRepository postRepository;
     @Mock private CommentRepository commentRepository;
+    @Mock private AccountRepository accountRepository;
 
     private Account createAccount() {
         return Account.builder()
@@ -43,7 +45,8 @@ public class HeartServiceTest {
                 .email("test@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
                 .nickname("test")
-                .role(Role.NOT_PERMITTED)
+                .levelPoint(50)
+                .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
                 .profileImage(null)
                 .build();
@@ -107,6 +110,7 @@ public class HeartServiceTest {
         then(postRepository).should().save(postArgumentCaptor.capture());
 
         assertEquals(1, postArgumentCaptor.getValue().getHeartCount());
+        assertEquals(70, postArgumentCaptor.getValue().getAuthor().getLevelPoint());
     }
 
     @DisplayName("게시글 하트 토글 성공 - 누른 상태일때 누르기")
@@ -137,6 +141,7 @@ public class HeartServiceTest {
         then(postRepository).should().save(postArgumentCaptor.capture());
 
         assertEquals(-1, postArgumentCaptor.getValue().getHeartCount());
+        assertEquals(30, postArgumentCaptor.getValue().getAuthor().getLevelPoint());
     }
 
     // ----- 댓글 하트 토글 -----
@@ -184,6 +189,7 @@ public class HeartServiceTest {
         then(commentRepository).should().save(commentArgumentCaptor.capture());
 
         assertEquals(1, commentArgumentCaptor.getValue().getHeartCount());
+        assertEquals(60, commentArgumentCaptor.getValue().getAuthor().getLevelPoint());
     }
 
     @DisplayName("댓글 하트 토글 성공 - 누른 상태일때 누르기")
@@ -221,5 +227,6 @@ public class HeartServiceTest {
         then(commentRepository).should().save(commentArgumentCaptor.capture());
 
         assertEquals(-1, commentArgumentCaptor.getValue().getHeartCount());
+        assertEquals(40, commentArgumentCaptor.getValue().getAuthor().getLevelPoint());
     }
 }
