@@ -6,14 +6,12 @@ import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.exception.DuplicateEmailException;
 import com.community.soob.account.exception.DuplicateNicknameException;
 import com.community.soob.util.RedisUtil;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class AccountSignupService {
@@ -23,12 +21,19 @@ public class AccountSignupService {
     private final AccountFindService accountFindService;
     private final SaltService saltService;
     private final RedisUtil redisUtil;
+    private final String verificationDuration;
+    private final String verificationLink;
 
-    @Value("{email.verification.duration}")
-    String verificationDuration;
-
-    @Value("{email.verification.link}")
-    String verificationLink;
+    public AccountSignupService(AccountRepository accountRepository, EmailService emailService, AccountCheckService accountCheckService, AccountFindService accountFindService, SaltService saltService, RedisUtil redisUtil, @Value("{email.verification.duration}") String verificationDuration, @Value("{email.verification.link}") String verificationLink) {
+        this.accountRepository = accountRepository;
+        this.emailService = emailService;
+        this.accountCheckService = accountCheckService;
+        this.accountFindService = accountFindService;
+        this.saltService = saltService;
+        this.redisUtil = redisUtil;
+        this.verificationDuration = verificationDuration;
+        this.verificationLink = verificationLink;
+    }
 
     @Transactional
     public void signup(AccountSignupRequestDto signupRequestDto) {
