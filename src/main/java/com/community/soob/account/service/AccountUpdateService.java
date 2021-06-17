@@ -5,7 +5,6 @@ import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.account.exception.AccountPasswordNotMatchedException;
 import com.community.soob.attachment.AttachmentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,9 +20,6 @@ public class AccountUpdateService {
     private final AccountCheckService accountCheckService;
     private final AttachmentService attachmentService;
     private final SaltService saltService;
-
-    @Value("{attachment.url.profile}")
-    private String directoryName;
 
     @Transactional
     public void updatePassword(Account account, String currentPassword, String newPassword, String confirmNewPassword) {
@@ -65,7 +61,7 @@ public class AccountUpdateService {
             if (account.getProfileImage() != null) {
                 attachmentService.deleteProfileImage(account);
             }
-            attachmentService.uploadProfileImage(account, file, directoryName);
+            attachmentService.uploadProfileImage(account, file);
         }
         account.updateNickname(nickname);
         accountRepository.save(account);

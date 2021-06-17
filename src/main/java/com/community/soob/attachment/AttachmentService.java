@@ -5,6 +5,7 @@ import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,8 +23,14 @@ public class AttachmentService {
     private final PostRepository postRepository;
     private final S3Service s3Service;
 
-    public void uploadProfileImage(Account account, MultipartFile file, String directoryName) {
-        String fileName = directoryName + createFileName(file.getOriginalFilename());
+    @Value("{attachment.url.profile}")
+    private String profileImageDirectory;
+
+    @Value("{attachment.url.post}")
+    private String postImageDirectory;
+
+    public void uploadProfileImage(Account account, MultipartFile file) {
+        String fileName = profileImageDirectory + createFileName(file.getOriginalFilename());
         String path = uploadImage(file, fileName);
         Attachment attachment = Attachment.builder()
                 .fileName(fileName)
@@ -36,8 +43,8 @@ public class AttachmentService {
         accountRepository.save(account);
     }
 
-    public void uploadPostImage(Post post, MultipartFile file, String directoryName) {
-        String fileName = directoryName + createFileName(file.getOriginalFilename());
+    public void uploadPostImage(Post post, MultipartFile file) {
+        String fileName = postImageDirectory + createFileName(file.getOriginalFilename());
         String path = uploadImage(file, fileName);
         Attachment attachment = Attachment.builder()
                 .fileName(fileName)
@@ -53,9 +60,9 @@ public class AttachmentService {
         postRepository.save(post);
     }
 
-    public void uploadPostImages(Post post, List<MultipartFile> files, String directoryName) {
+    public void uploadPostImages(Post post, List<MultipartFile> files) {
         for (MultipartFile file : files) {
-            uploadPostImage(post, file, directoryName);
+            uploadPostImage(post, file);
         }
     }
 

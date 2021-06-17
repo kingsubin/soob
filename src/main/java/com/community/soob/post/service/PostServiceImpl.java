@@ -14,7 +14,6 @@ import com.community.soob.post.exception.AuthorNotEqualException;
 import com.community.soob.post.exception.BoardNotFoundException;
 import com.community.soob.post.exception.PostNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +31,6 @@ public class PostServiceImpl implements PostService {
     private final CommentService commentService;
     private final HeartService heartService;
     private final AttachmentService attachmentService;
-
-    @Value("{attachment.url.post}")
-    private String directoryName;
 
     @Transactional
     public Post getPost(long postId) {
@@ -60,9 +56,9 @@ public class PostServiceImpl implements PostService {
 
         if (files != null && !files.isEmpty()) {
             if (files.size() == 1) {
-                attachmentService.uploadPostImage(savedPost, files.get(0), directoryName);
+                attachmentService.uploadPostImage(savedPost, files.get(0));
             } else {
-                attachmentService.uploadPostImages(savedPost, files, directoryName);
+                attachmentService.uploadPostImages(savedPost, files);
             }
         }
 
@@ -86,9 +82,9 @@ public class PostServiceImpl implements PostService {
         if (files != null && !files.isEmpty()) {
             attachmentService.deletePostImages(post);
             if (files.size() == 1) {
-                attachmentService.uploadPostImage(savedPost, files.get(0), directoryName);
+                attachmentService.uploadPostImage(savedPost, files.get(0));
             } else {
-                attachmentService.uploadPostImages(savedPost, files, directoryName);
+                attachmentService.uploadPostImages(savedPost, files);
             }
         }
     }
