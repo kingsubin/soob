@@ -4,7 +4,6 @@ import com.community.soob.account.domain.Account;
 import com.community.soob.account.domain.AccountRepository;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Transactional
 @Service
 public class AttachmentService {
@@ -22,12 +20,17 @@ public class AttachmentService {
     private final AccountRepository accountRepository;
     private final PostRepository postRepository;
     private final S3Service s3Service;
+    private final String profileImageDirectory;
+    private final String postImageDirectory;
 
-    @Value("{attachment.url.profile}")
-    private String profileImageDirectory;
-
-    @Value("{attachment.url.post}")
-    private String postImageDirectory;
+    public AttachmentService(AttachmentRepository attachmentRepository, AccountRepository accountRepository, PostRepository postRepository, S3Service s3Service, @Value("{attachment.url.profile}") String profileImageDirectory, @Value("{attachment.url.post}") String postImageDirectory) {
+        this.attachmentRepository = attachmentRepository;
+        this.accountRepository = accountRepository;
+        this.postRepository = postRepository;
+        this.s3Service = s3Service;
+        this.profileImageDirectory = profileImageDirectory;
+        this.postImageDirectory = postImageDirectory;
+    }
 
     public void uploadProfileImage(Account account, MultipartFile file) {
         String fileName = profileImageDirectory + createFileName(file.getOriginalFilename());

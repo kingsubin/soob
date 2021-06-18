@@ -10,6 +10,7 @@ import com.community.soob.attachment.S3Service;
 import com.community.soob.post.domain.Board;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,8 @@ public class AttachmentServiceTest {
                 .email("test@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
                 .nickname("test")
-                .role(Role.NOT_PERMITTED)
+                .levelPoint(50)
+                .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
                 .profileImage(null)
                 .build();
@@ -73,6 +75,13 @@ public class AttachmentServiceTest {
                 .build();
     }
 
+    @BeforeEach
+    void setUp() {
+        this.attachmentService = new AttachmentService(
+                attachmentRepository, accountRepository, postRepository, s3Service, profileDirectoryName, postDirectoryName
+        );
+    }
+
     @DisplayName("프로필이미지 업로드 성공")
     @Test
     void testProfileImageUploadSuccess() throws IOException {
@@ -94,7 +103,7 @@ public class AttachmentServiceTest {
                 .willReturn(savedAttachment);
 
         // when
-        attachmentService.uploadProfileImage(account, multipartFile, profileDirectoryName);
+        attachmentService.uploadProfileImage(account, multipartFile);
 
         // then
         ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
@@ -126,8 +135,8 @@ public class AttachmentServiceTest {
                 .willReturn(savedAttachment);
 
         // when
-        attachmentService.uploadPostImage(post, multipartFile, postDirectoryName);
-        
+        attachmentService.uploadPostImage(post, multipartFile);
+
         // then
         ArgumentCaptor<Attachment> attachmentArgumentCaptor = ArgumentCaptor.forClass(Attachment.class);
         then(attachmentRepository).should(times(2)).save(attachmentArgumentCaptor.capture());
@@ -199,7 +208,7 @@ public class AttachmentServiceTest {
 
         // when
         attachmentService.deletePostImages(post);
-        
+
         // then
         then(s3Service).should(times(3)).delete(any());
         then(attachmentRepository).should(times(3)).delete(any());
