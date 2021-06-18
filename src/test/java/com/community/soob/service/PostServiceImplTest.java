@@ -54,9 +54,9 @@ public class PostServiceImplTest {
                 .email("test@test.com")
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
                 .nickname("test")
+                .levelPoint(50)
                 .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
-                .levelPoint(50)
                 .profileImage(null)
                 .build();
     }
@@ -174,7 +174,7 @@ public class PostServiceImplTest {
 
         // then
         then(postRepository).should().save(any());
-        then(attachmentService).should().uploadPostImage(any(), eq(files.get(0)), any());
+        then(attachmentService).should().uploadPostImage(any(), eq(files.get(0)));
 
         ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
         then(accountRepository).should().save(accountArgumentCaptor.capture());
@@ -209,7 +209,7 @@ public class PostServiceImplTest {
 
         // then
         then(postRepository).should().save(any());
-        then(attachmentService).should().uploadPostImages(any(), eq(files), any());
+        then(attachmentService).should().uploadPostImages(any(), eq(files));
 
         ArgumentCaptor<Account> accountArgumentCaptor = ArgumentCaptor.forClass(Account.class);
         then(accountRepository).should().save(accountArgumentCaptor.capture());
@@ -350,7 +350,7 @@ public class PostServiceImplTest {
         assertEquals(content, post.getContent());
         then(postRepository).should().save(any());
         then(attachmentService).should().deletePostImages(post);
-        then(attachmentService).should().uploadPostImages(any(), any(), any());
+        then(attachmentService).should().uploadPostImages(any(), any());
     }
 
     // ----- 게시글 삭제 -----
