@@ -92,7 +92,7 @@ class AccountSignupServiceTest {
                 .password("$2a$10$2H.qwzvH9zq4NrqrGJWdZOVZ4nrx3rfgEqnKvK98fWvaop0ceVtt2")
                 .nickname("test")
                 .levelPoint(50)
-                .role(Role.NOT_PERMITTED)
+                .role(Role.LEVEL_1)
                 .salt("$2a$10$2H.qwzvH9zq4NrqrGJWdZO")
                 .profileImage(null)
                 .build();
