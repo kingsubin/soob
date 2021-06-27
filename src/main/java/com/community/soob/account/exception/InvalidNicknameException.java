@@ -1,16 +1,8 @@
 package com.community.soob.account.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.InvalidValueException;
 
-public class InvalidNicknameException extends SoobException {
+public class InvalidNicknameException extends InvalidValueException {
     public InvalidNicknameException() {
-    }
-
-    public InvalidNicknameException(String message) {
-        super(message);
-    }
-
-    public InvalidNicknameException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

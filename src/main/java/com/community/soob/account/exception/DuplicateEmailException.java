@@ -1,13 +1,9 @@
 package com.community.soob.account.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.InvalidValueException;
 
-public class DuplicateEmailException extends SoobException {
+public class DuplicateEmailException extends InvalidValueException {
     public DuplicateEmailException() {
         super();
-    }
-
-    public DuplicateEmailException(String message) {
-        super(message);
     }
 }

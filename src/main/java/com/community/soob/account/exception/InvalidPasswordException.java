@@ -1,16 +1,8 @@
 package com.community.soob.account.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.InvalidValueException;
 
-public class InvalidPasswordException extends SoobException {
+public class InvalidPasswordException extends InvalidValueException {
     public InvalidPasswordException() {
-    }
-
-    public InvalidPasswordException(String message) {
-        super(message);
-    }
-
-    public InvalidPasswordException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

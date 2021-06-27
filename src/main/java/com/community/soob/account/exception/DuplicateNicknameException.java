@@ -1,13 +1,9 @@
 package com.community.soob.account.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.InvalidValueException;
 
-public class DuplicateNicknameException extends SoobException {
+public class DuplicateNicknameException extends InvalidValueException {
     public DuplicateNicknameException() {
         super();
-    }
-
-    public DuplicateNicknameException(String message) {
-        super(message);
     }
 }

@@ -1,10 +1,9 @@
 package com.community.soob.attachment;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.BusinessException;
 
-public class AttachmentException extends SoobException {
-    public AttachmentException() {
-    }
+public class AttachmentException extends BusinessException {
+    public AttachmentException() { }
 
     public AttachmentException(String message) {
         super(message);

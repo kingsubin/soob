@@ -1,16 +1,8 @@
 package com.community.soob.account.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.InvalidValueException;
 
-public class InvalidEmailException extends SoobException {
+public class InvalidEmailException extends InvalidValueException {
     public InvalidEmailException() {
-    }
-
-    public InvalidEmailException(String message) {
-        super(message);
-    }
-
-    public InvalidEmailException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

@@ -1,11 +1,9 @@
 package com.community.soob.comment.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.EntityNotFoundException;
 
-public class CommentNotFoundException extends SoobException {
-    public CommentNotFoundException() { }
-
-    public CommentNotFoundException(String message) {
-        super(message);
+public class CommentNotFoundException extends EntityNotFoundException {
+    public CommentNotFoundException() {
+        super();
     }
 }
