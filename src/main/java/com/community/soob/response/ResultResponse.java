@@ -11,7 +11,6 @@ public class ResultResponse<T> {
 
     private T data;
     private String status;
-    private String message;
 
     public ResultResponse(String status) {
         this.status = status;
@@ -20,11 +19,6 @@ public class ResultResponse<T> {
     public ResultResponse(String status, T data) {
         this.status = status;
         this.data = data;
-    }
-
-    public ResultResponse(String status, String message) {
-        this.status = status;
-        this.message = message;
     }
 
     public static <T> ResultResponse<T> of(String status, T data) {
@@ -36,12 +30,6 @@ public class ResultResponse<T> {
     public static ResultResponse<Void> of(String status) {
         return new ResultResponse<>(
                 status
-        );
-    }
-
-    public static ResultResponse<Void> of(String status, String message) {
-        return new ResultResponse<>(
-                status, message
         );
     }
 }
