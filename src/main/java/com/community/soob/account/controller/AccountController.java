@@ -90,7 +90,7 @@ public class AccountController {
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "회원번호", required = true) @PathVariable Long accountId,
             @ApiParam(value = "닉네임DTO")  @Valid @RequestBody final AccountNicknameUpdateRequestDto nicknameUpdateRequestDto,
-            @ApiParam(value = "프로필이미지") @RequestPart("file") MultipartFile file) {
+            @ApiParam(value = "프로필이미지") @RequestPart(required = false, name = "file") MultipartFile file) {
         accountUpdateService.updateAccount(account, nicknameUpdateRequestDto.getNickname(), file);
         return ResultResponse.of(ResultResponse.SUCCESS, AccountResponseDto.fromEntity(account));
     }

@@ -1,4 +1,4 @@
-package com.community.soob.config;
+package com.community.soob.common;
 
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;

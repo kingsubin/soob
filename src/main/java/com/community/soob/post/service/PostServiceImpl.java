@@ -10,7 +10,7 @@ import com.community.soob.post.domain.Board;
 import com.community.soob.post.domain.BoardRepository;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
-import com.community.soob.post.exception.AuthorNotEqualException;
+import com.community.soob.post.exception.AuthorNotMatchedException;
 import com.community.soob.post.exception.BoardNotFoundException;
 import com.community.soob.post.exception.PostNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +71,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public void updatePost(Account account, long postId, String title, String content, @Nullable List<MultipartFile> files) {
         if (!isAuthorMatched(account, postId)) {
-            throw new AuthorNotEqualException();
+            throw new AuthorNotMatchedException();
         }
 
         Post post = postRepository.findById(postId)
@@ -93,7 +93,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public void deletePost(Account account, long postId) {
         if (!isAuthorMatched(account, postId)) {
-            throw new AuthorNotEqualException();
+            throw new AuthorNotMatchedException();
         }
 
         Post post = postRepository.findById(postId)

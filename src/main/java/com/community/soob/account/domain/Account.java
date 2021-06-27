@@ -1,7 +1,7 @@
 package com.community.soob.account.domain;
 
 import com.community.soob.attachment.Attachment;
-import com.community.soob.config.AuditedEntity;
+import com.community.soob.common.AuditedEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

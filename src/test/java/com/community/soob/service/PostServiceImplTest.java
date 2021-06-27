@@ -10,7 +10,7 @@ import com.community.soob.post.domain.Board;
 import com.community.soob.post.domain.BoardRepository;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
-import com.community.soob.post.exception.AuthorNotEqualException;
+import com.community.soob.post.exception.AuthorNotMatchedException;
 import com.community.soob.post.exception.BoardNotFoundException;
 import com.community.soob.post.exception.PostNotFoundException;
 import com.community.soob.post.service.PostServiceImpl;
@@ -282,7 +282,7 @@ public class PostServiceImplTest {
 
         // when
         // then
-        assertThrows(AuthorNotEqualException.class, () -> {
+        assertThrows(AuthorNotMatchedException.class, () -> {
             postServiceImpl.updatePost(account, postId, title, content, null);
         });
     }

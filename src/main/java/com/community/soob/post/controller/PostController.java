@@ -31,7 +31,7 @@ public class PostController {
             @ApiIgnore(value = "로그인한 유저인지 검사") @CurrentAccount Account account,
             @ApiParam(value = "게시판 번호", required = true) @PathVariable Long boardId,
             @ApiParam(value = "게시글작성DTO", required = true) @Valid @RequestBody final PostRequestDto saveRequestDto,
-            @ApiParam(value = "게시글이미지") @RequestPart(name = "files") List<MultipartFile> files) {
+            @ApiParam(value = "게시글이미지") @RequestPart(required = false, name = "files") List<MultipartFile> files) {
         postService.createPost(account, boardId, saveRequestDto.getTitle(), saveRequestDto.getContent(), files);
         return ResultResponse.of(ResultResponse.SUCCESS);
     }
@@ -52,7 +52,7 @@ public class PostController {
             @ApiParam(value = "게시판번호", required = true) @PathVariable Long boardId,
             @ApiParam(value = "게시글번호", required = true) @PathVariable Long postId,
             @ApiParam(value = "게시글수정DTO", required = true) @Valid @RequestBody final PostRequestDto updateRequestDto,
-            @ApiParam(value = "이미지") @RequestParam(name = "files") List<MultipartFile> files) {
+            @ApiParam(value = "이미지") @RequestParam(required = false, name = "files") List<MultipartFile> files) {
         postService.updatePost(account, postId, updateRequestDto.getTitle(), updateRequestDto.getContent(), files);
         return ResultResponse.of(ResultResponse.SUCCESS, PostResponseDto.fromEntity(postService.getPost(postId)));
     }

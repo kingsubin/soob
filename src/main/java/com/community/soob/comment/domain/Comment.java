@@ -1,7 +1,7 @@
 package com.community.soob.comment.domain;
 
 import com.community.soob.account.domain.Account;
-import com.community.soob.config.AuditedEntity;
+import com.community.soob.common.AuditedEntity;
 import com.community.soob.post.domain.Post;
 import lombok.AccessLevel;
 import lombok.Builder;

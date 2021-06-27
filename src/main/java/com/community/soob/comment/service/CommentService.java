@@ -8,7 +8,7 @@ import com.community.soob.comment.exception.CommentNotFoundException;
 import com.community.soob.heart.service.HeartService;
 import com.community.soob.post.domain.Post;
 import com.community.soob.post.domain.PostRepository;
-import com.community.soob.post.exception.AuthorNotEqualException;
+import com.community.soob.post.exception.AuthorNotMatchedException;
 import com.community.soob.post.exception.PostNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -58,7 +58,7 @@ public class CommentService {
     @Transactional
     public void updateComment(Account account, long commentId, String content) {
         if (!isAuthorMatched(account, commentId)) {
-            throw new AuthorNotEqualException();
+            throw new AuthorNotMatchedException();
         }
 
         Comment comment = commentRepository.findById(commentId)
@@ -70,7 +70,7 @@ public class CommentService {
     @Transactional
     public void deleteComment(Account account, long commentId) {
         if (!isAuthorMatched(account, commentId)) {
-            throw new AuthorNotEqualException();
+            throw new AuthorNotMatchedException();
         }
 
         Long heartCount = heartService.getHeartCountForComment(commentId);
