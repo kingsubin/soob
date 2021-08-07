@@ -49,7 +49,7 @@ deploy:
     key: soob.zip # 빌드파일을 압축해서 전달
     build_type: zip
     application: soob_backend # 웹 콘솔에서 등록한 codedeploy 애플리케이션
-    deployment_group: soob_backend_group # 웹 콘솔에서 등록한 codedeploy 배포그룹
+    deployment_group: soob # 웹 콘솔에서 등록한 codedeploy 배포그룹
     region: ap-northeast-2
     wait-until-deployed: true
 
