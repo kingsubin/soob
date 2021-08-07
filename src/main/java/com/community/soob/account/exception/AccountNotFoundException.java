@@ -1,17 +1,9 @@
 package com.community.soob.account.exception;
 
-import com.community.soob.config.SoobException;
+import com.community.soob.common.EntityNotFoundException;
 
-public class AccountNotFoundException extends SoobException {
+public class AccountNotFoundException extends EntityNotFoundException {
     public AccountNotFoundException() {
         super();
-    }
-
-    public AccountNotFoundException(String message) {
-        super(message);
-    }
-
-    public AccountNotFoundException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

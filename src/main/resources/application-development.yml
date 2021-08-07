@@ -13,7 +13,7 @@ spring:
     generate-ddl: true
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
   cache:
     type: redis
   redis:
@@ -21,12 +21,3 @@ spring:
     port: 6379
   jwt:
     secret: kingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubinkingsubin
-
-settings:
-  email-properties:
-    verificationDuration: 1800
-    verificationLink: http://localhost:8080/account/verify/
-  attachment-properties:
-    path: /Users/kingsubin/Desktop/Project/soob_backend/files
-    profileImagePath: /profileImage/
-    postImagePath: /postImage/

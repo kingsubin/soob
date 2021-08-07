@@ -5,11 +5,12 @@ ABSPATH=$(readlink -f $0)
 ABSDIR=$(dirname $ABSPATH)
 source ${ABSDIR}/profile.sh   # import profile.sh
 
-REPOSITORY=/home/ec2-user/app/step3
-PROJECT_NAME=soob_backend
+REPOSITORY=/home/ec2-user/app/cicd
+PROJECT_NAME=soob
 
+# 내가 따로 작성
 pwd # debug
-cd $REPOSITORY # 실행위치로 이동 # 내가따로적음
+cd $REPOSITORY # 실행위치로 이동
 pwd # debug
 
 echo "> Build 파일 복사"

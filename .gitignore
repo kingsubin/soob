@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 application-production-db.yml
 application-mail.yml
+application-aws.yml
 
 ### STS ###
 .apt_generated

@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ec2-user/app/step3/zip/
+    destination: /home/ec2-user/app/cicd/zip
     overwrite: yes
 
 permissions:
@@ -17,8 +17,8 @@ hooks:
       timeout: 60
       runas: ec2-user
   ApplicationStart:
-    - location: start.sh # 엔진엑스와 연결되어 있찌 않은 port로 새버전의 스프링부트 시작
-      timeout: 60
+    - location: start.sh # 엔진엑스와 연결되어 있 않은 port 로 새버전의 스프링부트 시작
+      timeout: 60지
       runas: ec2-user
   ValidateService:
     - location: health.sh # 새 스프링 부트가 정상적으로 실행됏는지 확인

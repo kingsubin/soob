@@ -1,7 +1,7 @@
 package com.community.soob.account.domain;
 
 import com.community.soob.attachment.Attachment;
-import com.community.soob.config.AuditedEntity;
+import com.community.soob.common.AuditedEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +29,9 @@ public class Account extends AuditedEntity {
 
     private String salt;
 
+    @Column(name = "level_point")
+    private int levelPoint;
+
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -38,31 +41,78 @@ public class Account extends AuditedEntity {
     private Attachment profileImage;
 
     @Builder
-    public Account(Long id, String email, String password, String nickname, String salt, Role role, Attachment profileImage) {
+    public Account(Long id, String email, String password, String nickname, String salt, int levelPoint, Role role, Attachment profileImage) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.salt = salt;
+        this.levelPoint = levelPoint;
         this.role = role;
         this.profileImage = profileImage;
     }
 
-    // --- 비즈니스 로직
     public void updateEmailVerified() {
         this.role = Role.LEVEL_1;
     }
 
-    public void setNickname(String nickname) {
+    public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
 
-    public void setProfileImage(Attachment profileImage) {
+    public void updateProfileImage(Attachment profileImage) {
         this.profileImage = profileImage;
     }
 
     public void updatePassword(String salt, String saltingPassword) {
         this.salt = salt;
         this.password = saltingPassword;
+    }
+
+    public void increasePostPoint() {
+        this.levelPoint += 10;
+    }
+
+    public void decreasePostPoint() {
+        this.levelPoint -= 10;
+    }
+
+    public void increaseCommentPoint() {
+        this.levelPoint += 5;
+    }
+
+    public void decreaseCommentPoint() {
+        this.levelPoint -= 5;
+    }
+
+    public void increasePostHeartPoint() {
+        this.levelPoint += 20;
+    }
+
+    public void decreasePostHeartPoint(long count) {
+        this.levelPoint -= count * 20;
+    }
+
+    public void increaseCommentHeartPoint() {
+        this.levelPoint += 10;
+    }
+
+    public void decreaseCommentHeartPoint(long count) {
+        this.levelPoint -= count * 10;
+    }
+
+    public void updateLevel() {
+        int levelPoint = this.levelPoint;
+        int level = this.role.getLevel();
+
+        if (level > 0 && levelPoint < 250) {
+            this.role = Role.LEVEL_1;
+        }
+        if (levelPoint >= 250) {
+            this.role = Role.LEVEL_2;
+        }
+        if (levelPoint >= 750) {
+            this.role = Role.LEVEL_3;
+        }
     }
 }

@@ -7,30 +7,30 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class AttachmentDto {
+    private Long id;
     private String fileName;
-    private String hashedFileName;
     private String filePath;
 
     @Builder
-    public AttachmentDto(String fileName, String hashedFileName, String filePath) {
+    public AttachmentDto(Long id, String fileName, String filePath) {
+        this.id = id;
         this.fileName = fileName;
-        this.hashedFileName = hashedFileName;
         this.filePath = filePath;
     }
 
     public Attachment toEntity() {
         return Attachment.builder()
+                .id(id)
                 .fileName(fileName)
-                .hashedFileName(hashedFileName)
                 .filePath(filePath)
                 .build();
     }
 
     public static AttachmentDto fromEntity(Attachment attachment) {
         return AttachmentDto.builder()
+                .id(attachment.getId())
                 .fileName(attachment.getFileName())
-                .hashedFileName(attachment.getHashedFileName())
-                .fileName(attachment.getFileName())
+                .filePath(attachment.getFilePath())
                 .build();
     }
 }
