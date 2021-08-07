@@ -22,6 +22,7 @@ function find_idle_profile()
 
     echo "${IDLE_PROFILE}"    # bash script는 return 기능이 없기 떄문에 echo를 통해서 출력하면 이 값을 클라이언트가 사용할 수 있습니다.
 }
+
 # 쉬고 있는 profile의 port 찾기
 function find_idle_port()
 {
