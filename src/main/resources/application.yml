@@ -4,3 +4,10 @@ spring:
       "development": "mail, aws"
       "production1": "mail, production-db, aws"
       "production2": "mail, production-db, aws"
+
+logging:
+  level:
+    com:
+      amazonaws:
+        util:
+          EC2MetadataUtils: error

@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-REPOSITORY=/home/ec2-user/app/step2
-PROJECT_NAME=soob_backend
+REPOSITORY=/home/ec2-user/app/cicd
+PROJECT_NAME=soob
 
 cd $REPOSITORY # 실행위치로 이동
 
